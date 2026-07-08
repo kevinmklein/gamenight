@@ -1,0 +1,826 @@
+<style>
+  :root{
+    --felt:#2f4a3a; --felt-2:#25402f; --brass:#c6902f; --brass-lo:#a8761f;
+    --walnut:#6b4a32; --walnut-dk:#4c3322;
+    --paper:#efe8d6; --paper-2:#e6ddc6; --card:#f5efdf;
+    --ink:#2a251c; --ink-2:#5a5344; --hair:#d8cdb0;
+    --good:#3f7d52; --warn:#c6902f; --crit:#b1503a;
+    --shadow:rgba(40,30,15,.18);
+    --disp:"Iowan Old Style",Georgia,"Palatino Linotype",Palatino,serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --bg:#e8dfc8; --bg-2:#ddd2b6;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --felt:#3a5a46; --felt-2:#2c4636; --brass:#e0aa4c; --brass-lo:#c6902f;
+      --walnut:#3a291c; --walnut-dk:#2a1d13;
+      --paper:#2b2a24; --paper-2:#232219; --card:#302e26;
+      --ink:#efe7d4; --ink-2:#b3ab98; --hair:#453f31;
+      --shadow:rgba(0,0,0,.4);
+      --bg:#1c1a14; --bg-2:#15140f;
+    }
+  }
+  :root[data-theme="light"]{
+    --felt:#2f4a3a; --felt-2:#25402f; --brass:#c6902f; --brass-lo:#a8761f;
+    --walnut:#6b4a32; --walnut-dk:#4c3322;
+    --paper:#efe8d6; --paper-2:#e6ddc6; --card:#f5efdf;
+    --ink:#2a251c; --ink-2:#5a5344; --hair:#d8cdb0;
+    --shadow:rgba(40,30,15,.18); --bg:#e8dfc8; --bg-2:#ddd2b6;
+  }
+  :root[data-theme="dark"]{
+    --felt:#3a5a46; --felt-2:#2c4636; --brass:#e0aa4c; --brass-lo:#c6902f;
+    --walnut:#3a291c; --walnut-dk:#2a1d13;
+    --paper:#2b2a24; --paper-2:#232219; --card:#302e26;
+    --ink:#efe7d4; --ink-2:#b3ab98; --hair:#453f31;
+    --shadow:rgba(0,0,0,.4); --bg:#1c1a14; --bg-2:#15140f;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0}
+  #app{
+    font-family:var(--sans); color:var(--ink);
+    background:
+      radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb,var(--brass) 10%, transparent), transparent 60%),
+      linear-gradient(var(--bg),var(--bg-2));
+    min-height:100vh; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding:0 20px 72px}
+  h1,h2,h3{font-family:var(--disp);font-weight:600;text-wrap:balance;margin:0}
+  .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass-lo);font-weight:700}
+  button{font-family:inherit}
+  .tnum{font-variant-numeric:tabular-nums}
+
+  /* ---- header ---- */
+  header.top{
+    background:linear-gradient(var(--walnut),var(--walnut-dk));
+    color:#f4ead2; border-bottom:3px solid rgba(0,0,0,.25);
+    box-shadow:0 4px 18px var(--shadow); position:relative; overflow:hidden;
+  }
+  header.top::after{content:"";position:absolute;inset:0;opacity:.14;pointer-events:none;
+    background:repeating-linear-gradient(90deg,#000 0 2px,transparent 2px 7px)}
+  .brand{max-width:1040px;margin:0 auto;padding:18px 20px 0;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;position:relative;z-index:1}
+  .brand h1{font-size:30px;color:#f6ecd6;letter-spacing:.01em;display:flex;align-items:center;gap:12px}
+  .brand .sub{font-size:12.5px;color:#d9c9a4;margin-top:4px;letter-spacing:.02em}
+  .meeple{width:26px;height:26px;flex:none}
+  .theme-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#f0e3c6;
+    border-radius:9px;padding:7px 11px;cursor:pointer;font-size:13px}
+  .theme-btn:hover{background:rgba(255,255,255,.16)}
+  nav.tabs{max-width:1040px;margin:0 auto;padding:14px 20px 0;display:flex;gap:4px;position:relative;z-index:1}
+  nav.tabs button{
+    background:transparent;border:0;color:#e4d6b6;cursor:pointer;
+    padding:10px 16px 14px;font-size:14.5px;font-weight:600;border-radius:9px 9px 0 0;position:relative;
+  }
+  nav.tabs button .n{font-family:var(--disp)}
+  nav.tabs button[aria-selected="true"]{color:var(--ink);background:var(--bg)}
+  nav.tabs button[aria-selected="true"]::before{content:"";position:absolute;left:12px;right:12px;top:6px;height:3px;background:var(--brass);border-radius:3px}
+  nav.tabs button:not([aria-selected="true"]):hover{color:#fff}
+
+  section.tab{padding-top:26px;animation:fade .4s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+  .lead{max-width:60ch;color:var(--ink-2);font-size:15px;margin:6px 0 0}
+  .h-row{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  h2.big{font-size:26px}
+
+  /* ---- filter chips ---- */
+  .filters{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 8px}
+  .fgroup{display:flex;align-items:center;gap:6px;background:var(--paper);border:1px solid var(--hair);border-radius:12px;padding:5px 6px 5px 12px}
+  .fgroup .lbl{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);font-weight:700;margin-right:2px}
+  .chip{border:1px solid var(--hair);background:var(--card);color:var(--ink);border-radius:9px;padding:5px 10px;font-size:12.5px;cursor:pointer;white-space:nowrap}
+  .chip[aria-pressed="true"]{background:var(--felt);color:#f4ead2;border-color:var(--felt-2)}
+  .chip:hover:not([aria-pressed="true"]){border-color:var(--brass)}
+  .count{color:var(--ink-2);font-size:13px;margin-left:2px}
+  .link-btn{background:none;border:0;color:var(--brass-lo);font-weight:600;cursor:pointer;font-size:12.5px;text-decoration:underline;text-underline-offset:2px}
+
+  /* ---- shelf ---- */
+  .shelf-block{margin-top:14px}
+  .shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:14px}
+  .board{position:relative}
+  .board::after{content:"";display:block;height:16px;margin-top:2px;border-radius:0 0 6px 6px;
+    background:linear-gradient(var(--walnut),var(--walnut-dk));
+    box-shadow:0 8px 14px -6px var(--shadow)}
+  .gbox{
+    position:relative;border-radius:9px 9px 4px 4px;overflow:hidden;cursor:pointer;text-align:left;
+    border:1px solid rgba(0,0,0,.18);padding:0;width:100%;
+    box-shadow:0 6px 12px -6px var(--shadow);transition:transform .16s ease,box-shadow .16s ease;
+    display:flex;flex-direction:column;aspect-ratio:3/3.6;color:#fff;background:#333;
+  }
+  .gbox:hover{transform:translateY(-6px);box-shadow:0 16px 24px -10px var(--shadow)}
+  .gbox:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+  .gbox .art{flex:1;padding:12px;display:flex;flex-direction:column;justify-content:space-between;position:relative}
+  .gbox .art::before{content:"";position:absolute;inset:0;opacity:.16;
+    background:radial-gradient(circle at 30% 20%,#fff,transparent 45%)}
+  .gbox .kind{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;opacity:.9;position:relative}
+  .gbox .name{font-family:var(--disp);font-size:19px;line-height:1.05;font-weight:600;position:relative;text-shadow:0 1px 3px rgba(0,0,0,.35)}
+  .gbox .plate{background:rgba(0,0,0,.28);backdrop-filter:blur(2px);padding:7px 10px;display:flex;gap:10px;font-size:11px;font-weight:600;align-items:center}
+  .gbox .plate .dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.6}
+  .dusty{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.35);color:#f4ead2;font-size:10px;padding:3px 7px;border-radius:20px;font-weight:700;letter-spacing:.03em;z-index:2}
+  .empty{padding:40px;text-align:center;color:var(--ink-2);background:var(--paper);border:1px dashed var(--hair);border-radius:14px}
+
+  /* ---- detail modal ---- */
+  .scrim{position:fixed;inset:0;background:rgba(20,15,5,.55);display:flex;align-items:center;justify-content:center;padding:18px;z-index:50;animation:fade .2s}
+  .modal{background:var(--card);border-radius:16px;max-width:440px;width:100%;overflow:hidden;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);border:1px solid var(--hair)}
+  .modal .hero{padding:22px;color:#fff;position:relative}
+  .modal .hero .kind{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;opacity:.9}
+  .modal .hero h3{font-size:28px;margin-top:4px;text-shadow:0 1px 4px rgba(0,0,0,.4)}
+  .modal .body{padding:20px 22px 22px}
+  .specs{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px;margin:2px 0 16px}
+  .spec .k{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);font-weight:700}
+  .spec .v{font-size:15px;font-weight:600;margin-top:1px}
+  .tags{display:flex;flex-wrap:wrap;gap:6px}
+  .tag{font-size:11.5px;background:var(--paper);border:1px solid var(--hair);border-radius:20px;padding:3px 10px;color:var(--ink-2);font-weight:600}
+  .x{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.3);border:0;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:17px}
+  .x:hover{background:rgba(0,0,0,.5)}
+
+  /* ---- generic buttons ---- */
+  .btn{background:var(--felt);color:#f4ead2;border:1px solid var(--felt-2);border-radius:11px;padding:11px 18px;font-size:14.5px;font-weight:600;cursor:pointer;box-shadow:0 4px 10px -4px var(--shadow)}
+  .btn:hover{background:var(--felt-2)}
+  .btn.brass{background:var(--brass);color:#3a2a08;border-color:var(--brass-lo)}
+  .btn.brass:hover{background:var(--brass-lo);color:#fff}
+  .btn.ghost{background:transparent;color:var(--ink);border-color:var(--hair)}
+  .btn.ghost:hover{border-color:var(--brass)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn:focus-visible,.chip:focus-visible,.theme-btn:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+
+  /* ---- game night ---- */
+  .stepper{display:flex;gap:6px;margin:18px 0 22px;flex-wrap:wrap}
+  .step{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-2);font-weight:600}
+  .step .num{width:22px;height:22px;border-radius:50%;background:var(--paper);border:1px solid var(--hair);display:grid;place-items:center;font-size:12px;font-family:var(--disp)}
+  .step.on{color:var(--ink)}
+  .step.on .num{background:var(--brass);color:#3a2a08;border-color:var(--brass-lo)}
+  .step.done .num{background:var(--felt);color:#f4ead2;border-color:var(--felt-2)}
+  .step .arr{color:var(--hair)}
+
+  .panel{background:var(--paper);border:1px solid var(--hair);border-radius:16px;padding:22px}
+  .panel + .panel{margin-top:16px}
+  .field{margin-top:18px}
+  .field:first-child{margin-top:0}
+  .field > .lbl{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-2);font-weight:700;display:block;margin-bottom:9px}
+  .players{display:flex;gap:10px;flex-wrap:wrap}
+  .pchip{display:flex;align-items:center;gap:9px;background:var(--card);border:1.5px solid var(--hair);border-radius:40px;padding:6px 14px 6px 6px;cursor:pointer;font-weight:600;font-size:14px}
+  .pchip[aria-pressed="true"]{border-color:var(--felt);background:color-mix(in srgb,var(--felt) 12%,var(--card))}
+  .pchip .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;flex:none}
+  .pchip .av svg{width:20px;height:20px}
+  .segs{display:inline-flex;background:var(--card);border:1px solid var(--hair);border-radius:11px;padding:3px;gap:2px;flex-wrap:wrap}
+  .segs button{border:0;background:transparent;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--ink)}
+  .segs button[aria-pressed="true"]{background:var(--felt);color:#f4ead2}
+  .eligible-note{margin-top:18px;font-size:14px;color:var(--ink-2);display:flex;align-items:center;gap:8px}
+  .eligible-note b{color:var(--ink);font-family:var(--disp);font-size:18px}
+
+  /* ballot / voting */
+  .ballot{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-top:6px}
+  .bcard{position:relative;border:1.5px solid var(--hair);background:var(--card);border-radius:13px;padding:0;cursor:pointer;overflow:hidden;text-align:left;transition:transform .12s}
+  .bcard:hover{transform:translateY(-3px);border-color:var(--brass)}
+  .bcard .strip{height:8px}
+  .bcard .in{padding:12px 14px}
+  .bcard .bn{font-family:var(--disp);font-size:17px;font-weight:600}
+  .bcard .bmeta{font-size:12px;color:var(--ink-2);margin-top:3px}
+  .bcard .pick{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;background:var(--brass);color:#3a2a08;display:none;place-items:center;font-family:var(--disp);font-weight:700;font-size:15px}
+  .bcard[data-rank]{border-color:var(--brass);box-shadow:0 0 0 1px var(--brass)}
+  .bcard[data-rank] .pick{display:grid}
+  .voter-banner{display:flex;align-items:center;gap:14px;background:var(--felt);color:#f4ead2;border-radius:14px;padding:16px 20px;margin-bottom:16px}
+  .voter-banner .av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex:none;box-shadow:0 0 0 3px rgba(255,255,255,.2)}
+  .voter-banner .av svg{width:28px;height:28px}
+  .voter-banner h3{font-size:20px;color:#fff}
+  .voter-banner p{margin:2px 0 0;font-size:13px;color:#e4d6b6}
+  .vote-help{font-size:13.5px;color:var(--ink-2);margin:0 0 14px}
+
+  /* reveal */
+  .results{margin-top:4px}
+  .rrow{display:flex;align-items:center;gap:14px;padding:13px 16px;border-radius:12px;background:var(--card);border:1px solid var(--hair);margin-bottom:9px;position:relative;overflow:hidden}
+  .rrow .rank{font-family:var(--disp);font-size:22px;width:26px;text-align:center;color:var(--ink-2)}
+  .rrow .info{flex:1;min-width:0}
+  .rrow .rn{font-family:var(--disp);font-size:17px;font-weight:600}
+  .rrow .rbar-wrap{height:7px;background:var(--paper-2);border-radius:5px;margin-top:6px;overflow:hidden}
+  .rrow .rbar{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--felt),var(--good));transition:width .8s cubic-bezier(.2,.8,.2,1)}
+  .rrow .score{font-family:var(--disp);font-size:20px;font-weight:700;min-width:34px;text-align:right}
+  .rrow .fresh{font-size:11px;color:var(--brass-lo);font-weight:700}
+  .rrow.winner{background:linear-gradient(120deg,color-mix(in srgb,var(--brass) 20%,var(--card)),var(--card));border-color:var(--brass);box-shadow:0 8px 20px -8px var(--shadow)}
+  .winner-hero{text-align:center;padding:30px 22px;background:linear-gradient(var(--felt),var(--felt-2));border-radius:18px;color:#f4ead2;margin-bottom:18px;position:relative;overflow:hidden}
+  .winner-hero .eyebrow{color:var(--brass)}
+  .winner-hero h2{font-size:38px;color:#fff;margin:6px 0 4px}
+  .winner-hero p{margin:0;color:#e4d6b6;font-size:14px}
+  .tie-note{background:color-mix(in srgb,var(--brass) 16%,var(--paper));border:1px solid var(--brass);border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:13.5px}
+  .tie-note b{font-family:var(--disp)}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+
+  /* ---- stats ---- */
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-top:6px}
+  .tile{background:var(--paper);border:1px solid var(--hair);border-radius:15px;padding:18px}
+  .tile .k{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);font-weight:700}
+  .tile .v{font-family:var(--disp);font-size:34px;font-weight:700;margin-top:6px;line-height:1}
+  .tile .v small{font-size:15px;color:var(--ink-2);font-weight:600}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+  @media(max-width:720px){.cols{grid-template-columns:1fr}}
+  .card2{background:var(--paper);border:1px solid var(--hair);border-radius:15px;padding:20px}
+  .card2 h3{font-size:17px;margin-bottom:14px}
+  .barrow{display:flex;align-items:center;gap:12px;margin-bottom:11px}
+  .barrow .who{display:flex;align-items:center;gap:8px;width:96px;font-weight:600;font-size:13.5px}
+  .barrow .who .av{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;flex:none}
+  .barrow .who .av svg{width:16px;height:16px}
+  .barrow .track{flex:1;height:20px;background:var(--paper-2);border-radius:6px;overflow:hidden}
+  .barrow .fill{height:100%;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:7px;color:#fff;font-size:11.5px;font-weight:700}
+  .list-row{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--hair)}
+  .list-row:last-child{border:0}
+  .list-row .sw{width:9px;height:26px;border-radius:3px;flex:none}
+  .list-row .ln{font-weight:600;font-size:14px;flex:1}
+  .list-row .lv{font-weight:700;color:var(--ink-2);font-size:13px}
+  .footnote{color:var(--ink-2);font-size:12.5px;margin-top:22px;text-align:center}
+  /* ---- share / QR ---- */
+  .share{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center}
+  @media(max-width:560px){.share{grid-template-columns:1fr;text-align:center;justify-items:center}}
+  .qr{background:#fff;padding:12px;border-radius:14px;box-shadow:0 6px 16px -6px var(--shadow);border:1px solid var(--hair)}
+  .qr canvas{display:block;border-radius:4px}
+  .share .rc-lbl{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-2);font-weight:700}
+  .roomcode{font-family:var(--disp);font-size:40px;font-weight:700;letter-spacing:.04em;color:var(--felt);line-height:1;margin:4px 0 2px}
+  :root[data-theme="dark"] .roomcode{color:var(--brass)}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .roomcode{color:var(--brass)}}
+  .linkbox{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .linkbox input{flex:1;min-width:180px;font-family:var(--sans);font-size:13px;padding:9px 12px;border:1px solid var(--hair);border-radius:9px;background:var(--card);color:var(--ink)}
+  .constraint-summary{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
+  .cpill{font-size:12px;background:var(--card);border:1px solid var(--hair);border-radius:20px;padding:4px 11px;font-weight:600;color:var(--ink-2)}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--felt);color:#f4ead2;padding:11px 18px;border-radius:11px;font-size:13.5px;font-weight:600;box-shadow:0 10px 24px -8px var(--shadow);z-index:60;animation:fade .2s}
+
+  /* ---- lobby ---- */
+  .lobby-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+  .join-list{display:flex;flex-direction:column;gap:9px;margin-top:6px}
+  .join-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--hair);border-radius:13px;padding:10px 14px}
+  .join-row .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:none}
+  .join-row .av svg{width:22px;height:22px}
+  .join-row .jn{font-weight:600;font-size:15px;flex:1}
+  .join-row .jn small{display:block;font-weight:500;font-size:12px;color:var(--ink-2)}
+  .jstat{font-size:12px;font-weight:700;padding:4px 11px;border-radius:20px;white-space:nowrap}
+  .jstat.voted{background:color-mix(in srgb,var(--good) 20%,var(--card));color:var(--good);border:1px solid var(--good)}
+  .jstat.wait{background:var(--paper-2);color:var(--ink-2);border:1px solid var(--hair)}
+  .jstat.go{background:var(--brass);color:#3a2a08;border:1px solid var(--brass-lo);cursor:pointer}
+  .jstat.go:hover{background:var(--brass-lo);color:#fff}
+  .addguest{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .addguest input{flex:1;min-width:160px;font-size:14px;padding:10px 13px;border:1px solid var(--hair);border-radius:10px;background:var(--card);color:var(--ink)}
+  .sim-note{font-size:12px;color:var(--ink-2);background:var(--paper-2);border-radius:9px;padding:8px 12px;margin:14px 0 0;display:flex;gap:7px;align-items:flex-start}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="app">
+  <header class="top">
+    <div class="brand">
+      <div>
+        <h1><svg class="meeple" viewBox="0 0 24 24" fill="#e0aa4c"><path d="M12 2a3 3 0 0 0-3 3c0 1 .5 1.8 1.2 2.4C8.8 8.2 7 9.6 7 12v1l-3 1v3l4-1v6h8v-6l4 1v-3l-3-1v-1c0-2.4-1.8-3.8-3.2-4.6C13.5 6.8 14 6 14 5a3 3 0 0 0-2-3z"/></svg>Game Shelf</h1>
+        <div class="sub">The Klein family collection · Thursday Game Night HQ</div>
+      </div>
+      <button class="theme-btn" id="themeBtn" aria-label="Toggle light and dark">🌙 Evening</button>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="shelf" aria-selected="true"><span class="n">The Shelf</span></button>
+      <button role="tab" data-tab="night" aria-selected="false"><span class="n">Game Night</span></button>
+      <button role="tab" data-tab="stats" aria-selected="false"><span class="n">Stats</span></button>
+    </nav>
+  </header>
+
+  <div class="wrap">
+    <div id="view"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ---------- data ----------
+  const PLAYERS = [
+    {id:"kevin", name:"Kevin", role:"Dad",   color:"#3f6d8f"},
+    {id:"stacey",name:"Stacey",role:"Mom",   color:"#a8524f"},
+    {id:"sara",  name:"Sara",  role:"Twin",  color:"#4f7d52"},
+    {id:"sophia",name:"Sophia",role:"Twin",  color:"#8a5aa0"},
+  ];
+  const P = Object.fromEntries(PLAYERS.map(p=>[p.id,p]));
+
+  // location: table|couch|either  · attention: focus|semi|background
+  const GAMES = [
+    {id:"catan",   name:"Catan",           kind:"Strategy", c1:"#c07a2e",c2:"#7a4318", time:75, players:"3–4", loc:"table", att:"focus",     setup:"involved", weight:2.3, vibe:["Strategic","Trade"], last:3,  plays:9},
+    {id:"carc",    name:"Carcassonne",     kind:"Strategy", c1:"#4b7a52",c2:"#274a2c", time:40, players:"2–5", loc:"table", att:"focus",     setup:"quick",    weight:1.9, vibe:["Strategic","Tile-lay"], last:24, plays:6},
+    {id:"ttr",     name:"Ticket to Ride",  kind:"Strategy", c1:"#b5462f",c2:"#6e2418", time:50, players:"2–5", loc:"table", att:"focus",     setup:"involved", weight:1.8, vibe:["Strategic","Routes"], last:41, plays:4},
+    {id:"azul",    name:"Azul",            kind:"Abstract", c1:"#3f7f97",c2:"#204b5c", time:40, players:"2–4", loc:"table", att:"focus",     setup:"quick",    weight:1.8, vibe:["Strategic","Pattern"], last:12, plays:5},
+    {id:"code",    name:"Codenames",       kind:"Party",    c1:"#8a6db0",c2:"#4d3670", time:15, players:"4–8", loc:"either",att:"semi",       setup:"quick",    weight:1.3, vibe:["Silly","Teams"], last:9,  plays:8},
+    {id:"sushi",   name:"Sushi Go!",       kind:"Card",     c1:"#d76a86",c2:"#8a3450", time:15, players:"2–5", loc:"either",att:"background", setup:"instant",  weight:1.2, vibe:["Chill","Draft"], last:6,  plays:11},
+    {id:"mdeal",   name:"Monopoly Deal",   kind:"Card",     c1:"#c74a4a",c2:"#7a2323", time:15, players:"2–5", loc:"couch", att:"background", setup:"instant",  weight:1.1, vibe:["Silly","Filler"], last:2,  plays:16},
+    {id:"uno",     name:"Uno",             kind:"Card",     c1:"#d98a24",c2:"#9c5a0d", time:12, players:"2–8", loc:"couch", att:"background", setup:"instant",  weight:1.0, vibe:["Silly","Filler"], last:1,  plays:22},
+    {id:"train",   name:"Mexican Train",   kind:"Dominoes", c1:"#3f6d8f",c2:"#234b66", time:40, players:"2–8", loc:"table", att:"semi",       setup:"quick",    weight:1.4, vibe:["Chill","Family"], last:33, plays:5},
+    {id:"ratcat",  name:"Rat-a-Tat Cat",   kind:"Card",     c1:"#6b8a3f",c2:"#42591f", time:12, players:"2–6", loc:"couch", att:"background", setup:"instant",  weight:1.0, vibe:["Chill","Kids"], last:18, plays:7},
+    {id:"queens",  name:"Sleeping Queens", kind:"Card",     c1:"#b06a9a",c2:"#6e3a5e", time:18, players:"2–5", loc:"couch", att:"background", setup:"instant",  weight:1.1, vibe:["Silly","Kids"], last:52, plays:3},
+    {id:"qwixx",   name:"Qwixx",           kind:"Dice",     c1:"#4f8f7d",c2:"#2c5a4d", time:15, players:"2–5", loc:"either",att:"semi",       setup:"instant",  weight:1.2, vibe:["Chill","Roll"], last:15, plays:6},
+  ];
+  const G = Object.fromEntries(GAMES.map(g=>[g.id,g]));
+
+  // sample history for stats
+  const WINS = {kevin:14, stacey:11, sara:17, sophia:13};
+
+  // ---------- state ----------
+  let tab = "shelf";
+  const filt = { time:null, loc:null, att:null };   // time: 15|30|60 (max) ; loc: couch|table ; att: background|focus
+  let openGame = null;
+
+  // game night state
+  let night = freshNight();
+  function freshNight(){return{
+    phase:"start",                // start | share | lobby | vote | reveal
+    cMaxTime:null, cLoc:null, cAtt:null,
+    room:"", link:"",
+    guests:[],                    // {id,name,color} added on the join screen
+    ballot:[],                    // game ids (built when the table opens)
+    votes:{},                     // playerId -> [g1,g2,g3] ranked
+    activeVoter:null,             // whose phone we're on (sim of own-device voting)
+    captainIdx:2,                 // rotating "Captain of the Night" — Sara this week
+  };}
+  const GUEST_COLORS=["#c08a3e","#3f8f8a","#a06a4f","#6a7a3f","#7a5a9a","#c26a6a"];
+  function roster(){return PLAYERS.concat(night.guests);}
+  function byId(id){return P[id]||night.guests.find(g=>g.id===id);}
+  function voters(){return Object.keys(night.votes);}
+
+  const el = document.getElementById("view");
+
+  // ---------- helpers ----------
+  function meepleSVG(color){return `<svg viewBox="0 0 24 24" fill="${color}"><path d="M12 2a3 3 0 0 0-3 3c0 1 .5 1.8 1.2 2.4C8.8 8.2 7 9.6 7 12v1l-3 1v3l4-1v6h8v-6l4 1v-3l-3-1v-1c0-2.4-1.8-3.8-3.2-4.6C13.5 6.8 14 6 14 5a3 3 0 0 0-2-3z"/></svg>`;}
+  function av(color,size){return `<span class="av" style="background:${color}">${meepleSVG("#fff")}</span>`;}
+  function timeLabel(t){return t+" min";}
+  function locLabel(l){return l==="either"?"Table or couch":l==="couch"?"Couch-friendly":"Needs a table";}
+  function attLabel(a){return a==="background"?"Background-OK":a==="semi"?"Light focus":"Needs focus";}
+  function esc(s){return s;}
+
+  function matchFilter(g){
+    if(filt.time && g.time>filt.time) return false;
+    if(filt.loc==="couch" && g.loc==="table") return false;
+    if(filt.loc==="table" && g.loc==="couch") return false;
+    if(filt.att==="background" && g.att!=="background") return false;
+    if(filt.att==="focus" && g.att==="background") return false;
+    return true;
+  }
+
+  // ---------- SHELF ----------
+  function renderShelf(){
+    const visible = GAMES.filter(matchFilter);
+    const anyFilter = filt.time||filt.loc||filt.att;
+    el.innerHTML = `
+      <section class="tab">
+        <div class="h-row">
+          <div>
+            <div class="eyebrow">Browse the collection</div>
+            <h2 class="big">The Shelf <span class="count tnum">· ${visible.length} of ${GAMES.length}</span></h2>
+          </div>
+        </div>
+        <p class="lead">Every box the family owns, on one shelf. Narrow it to what fits tonight — how long you've got, table or couch, and whether it can survive half a movie.</p>
+
+        <div class="filters">
+          <div class="fgroup"><span class="lbl">Under</span>
+            ${seg("time",[["15","15m"],["30","30m"],["60","60m"]])}
+          </div>
+          <div class="fgroup"><span class="lbl">Where</span>
+            ${seg("loc",[["couch","🛋 Couch"],["table","🪑 Table"]])}
+          </div>
+          <div class="fgroup"><span class="lbl">Focus</span>
+            ${seg("att",[["background","👀 Half-watch"],["focus","🧠 All-in"]])}
+          </div>
+          ${anyFilter?`<button class="link-btn" id="clearF">Clear filters</button>`:""}
+        </div>
+
+        <div class="shelf-block">
+          ${visible.length? `<div class="shelf">${visible.map(gbox).join("")}</div><div class="board" aria-hidden="true"></div>`
+            : `<div class="empty">No games fit those constraints. Loosen one — maybe couch games can run a little longer tonight.</div>`}
+        </div>
+      </section>`;
+    // wire
+    el.querySelectorAll("[data-seg]").forEach(b=>b.onclick=()=>{
+      const k=b.dataset.seg, v=b.dataset.val;
+      filt[k] = filt[k]===v ? null : (k==="time"?parseInt(v):v);
+      renderShelf();
+    });
+    const cf=document.getElementById("clearF"); if(cf) cf.onclick=()=>{filt.time=filt.loc=filt.att=null;renderShelf();};
+    el.querySelectorAll("[data-game]").forEach(b=>b.onclick=()=>{openGame=b.dataset.game;renderModal();});
+  }
+  function seg(key,opts){
+    return opts.map(([v,lbl])=>{
+      const on = String(filt[key])===String(v);
+      return `<button class="chip" data-seg="${key}" data-val="${v}" aria-pressed="${on}">${lbl}</button>`;
+    }).join("");
+  }
+  function gbox(g){
+    const dusty = g.last>=30;
+    return `<div class="board"><button class="gbox" data-game="${g.id}" style="background:linear-gradient(150deg,${g.c1},${g.c2})">
+      ${dusty?`<span class="dusty">🕸 ${g.last}d</span>`:""}
+      <div class="art">
+        <div class="kind">${g.kind}</div>
+        <div class="name">${g.name}</div>
+      </div>
+      <div class="plate">
+        <span class="tnum">${g.time}m</span><span class="dot"></span>
+        <span>${g.players}</span><span class="dot"></span>
+        <span>${g.loc==="couch"?"🛋":g.loc==="table"?"🪑":"🛋🪑"}</span>
+      </div>
+    </button></div>`;
+  }
+  function renderModal(){
+    const g=G[openGame]; if(!g) return;
+    const old=document.getElementById("scrim"); if(old) old.remove();
+    const d=document.createElement("div");
+    d.className="scrim"; d.id="scrim";
+    d.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="${g.name}">
+      <div class="hero" style="background:linear-gradient(150deg,${g.c1},${g.c2})">
+        <button class="x" id="closeM" aria-label="Close">✕</button>
+        <div class="kind">${g.kind}</div>
+        <h3>${g.name}</h3>
+      </div>
+      <div class="body">
+        <div class="specs">
+          <div class="spec"><div class="k">Play time</div><div class="v tnum">${g.time} min</div></div>
+          <div class="spec"><div class="k">Players</div><div class="v">${g.players}</div></div>
+          <div class="spec"><div class="k">Where</div><div class="v">${locLabel(g.loc)}</div></div>
+          <div class="spec"><div class="k">Attention</div><div class="v">${attLabel(g.att)}</div></div>
+          <div class="spec"><div class="k">Setup</div><div class="v" style="text-transform:capitalize">${g.setup}</div></div>
+          <div class="spec"><div class="k">Complexity</div><div class="v">${g.weight.toFixed(1)} / 5</div></div>
+        </div>
+        <div class="tags">${g.vibe.map(v=>`<span class="tag">${v}</span>`).join("")}
+          ${g.last>=30?`<span class="tag" style="border-color:var(--brass);color:var(--brass-lo)">🕸 Gathering dust</span>`:""}
+        </div>
+        <div style="margin-top:16px;font-size:13px;color:var(--ink-2)">Last played <b class="tnum" style="color:var(--ink)">${g.last} days</b> ago · played <b class="tnum" style="color:var(--ink)">${g.plays}×</b> all-time</div>
+      </div>
+    </div>`;
+    d.onclick=e=>{if(e.target===d) d.remove();};
+    document.body.appendChild(d);
+    document.getElementById("closeM").onclick=()=>d.remove();
+  }
+
+  // ---------- GAME NIGHT ----------
+  function eligibleForNight(){
+    return GAMES.filter(g=>{
+      if(night.cMaxTime && g.time>night.cMaxTime) return false;
+      if(night.cLoc==="couch" && g.loc==="table") return false;
+      if(night.cLoc==="table" && g.loc==="couch") return false;
+      if(night.cAtt==="background" && g.att!=="background") return false;
+      if(night.cAtt==="focus" && g.att==="background") return false;
+      return true;
+    });
+  }
+  function buildBallot(){
+    const elig = eligibleForNight();
+    // smart shortlist: mix crowd favorites (plays), fresh/dusty (last), and variety of kinds
+    const byFav=[...elig].sort((a,b)=>b.plays-a.plays);
+    const byDusty=[...elig].sort((a,b)=>b.last-a.last);
+    const picked=[];
+    const add=g=>{if(g&&!picked.find(x=>x.id===g.id)&&picked.length<8)picked.push(g);};
+    byFav.slice(0,3).forEach(add);       // some favorites
+    byDusty.slice(0,3).forEach(add);     // some dusty ones to fight ruts
+    const kinds=new Set(picked.map(g=>g.kind));
+    [...elig].sort(()=>Math.random()-.5).forEach(g=>{if(picked.length<8 && !kinds.has(g.kind)){add(g);kinds.add(g.kind);}});
+    [...elig].sort(()=>Math.random()-.5).forEach(add);
+    night.ballot=picked.map(g=>g.id);
+  }
+
+  function renderNight(){
+    const stepIdx = night.phase==="start"?0 : (night.phase==="reveal"?2:1);
+    el.innerHTML=`<section class="tab">
+      <div class="eyebrow">The main event</div>
+      <h2 class="big">Game Night</h2>
+      <p class="lead">One person sets the table and shares a link. Everyone votes from their own phone whenever they're ready — the engine finds the game the whole table agrees on and nudges you out of ruts.</p>
+      ${stepper(stepIdx)}
+      <div id="nightbody"></div>
+    </section>`;
+    const b=document.getElementById("nightbody");
+    ({start:renderStart,share:renderShare,lobby:renderLobby,vote:renderVote,reveal:renderReveal}[night.phase])(b);
+  }
+  function stepper(cur){
+    const steps=["Set the Table","Everyone Votes","Tonight We Play"];
+    return `<div class="stepper">${steps.map((s,i)=>`
+      <div class="step ${cur===i?"on":""} ${cur>i?"done":""}"><span class="num">${cur>i?"✓":i+1}</span>${s}</div>
+      ${i<2?`<span class="arr step">→</span>`:""}`).join("")}</div>`;
+  }
+  function nseg(key,opts){
+    return opts.map(([v,lbl])=>{
+      const on = String(night[key])===String(v);
+      return `<button data-nseg="${key}" data-val="${v===null?'__null':v}" aria-pressed="${on}">${lbl}</button>`;
+    }).join("");
+  }
+  function wireNseg(b){
+    b.querySelectorAll("[data-nseg]").forEach(x=>x.onclick=()=>{
+      const k=x.dataset.nseg; let v=x.dataset.val;
+      if(v==="__null")v=null; else if(!isNaN(v))v=parseInt(v);
+      night[k]=v; renderNight();
+    });
+  }
+
+  // -- phase: host sets the table --
+  function renderStart(b){
+    const elig=eligibleForNight();
+    b.innerHTML=`
+      <div class="panel">
+        <p style="margin:0 0 2px;font-size:14px;color:var(--ink-2)">You're the host. Set the ground rules — everyone else just votes on what's left.</p>
+        <div class="field">
+          <span class="lbl">How long have we got?</span>
+          <div class="segs">${nseg("cMaxTime",[[15,"Quick · 15m"],[30,"A bit · 30m"],[60,"Full · 60m"],[null,"No limit"]])}</div>
+        </div>
+        <div class="field">
+          <span class="lbl">Where are we?</span>
+          <div class="segs">${nseg("cLoc",[["couch","🛋 On the couch"],["table","🪑 At the table"],[null,"Either"]])}</div>
+        </div>
+        <div class="field">
+          <span class="lbl">Half-watching a movie?</span>
+          <div class="segs">${nseg("cAtt",[["background","👀 Keep it light"],["focus","🧠 We're all-in"],[null,"Doesn't matter"]])}</div>
+        </div>
+        <div class="eligible-note">🎲 That leaves <b class="tnum">${elig.length}</b> game${elig.length===1?"":"s"} on the table tonight.</div>
+      </div>
+      <div class="actions">
+        <button class="btn brass" id="openTable" ${elig.length<2?"disabled":""}>Open the table →</button>
+        ${elig.length<2?`<span style="align-self:center;color:var(--ink-2);font-size:13px">Loosen a rule — need at least 2 eligible games.</span>`:""}
+      </div>`;
+    wireNseg(b);
+    document.getElementById("openTable").onclick=()=>{
+      buildBallot(); night.votes={}; night.guests=[];
+      night.room=makeRoom(); night.link="gameshelf.app/join/"+night.room;
+      night.phase="share"; renderNight();
+    };
+  }
+  function makeRoom(){
+    const a=["OWL","FOX","ELK","CROW","MOTH","LYNX","WREN","HARE"];
+    return a[Math.floor(Math.random()*a.length)]+"-"+(100+Math.floor(Math.random()*899));
+  }
+
+  // -- phase: share the QR / link --
+  function renderShare(b){
+    b.innerHTML=`
+      <div class="panel">
+        <div class="share">
+          <div class="qr"><canvas id="qr" width="150" height="150"></canvas></div>
+          <div>
+            <div class="rc-lbl">Table code</div>
+            <div class="roomcode">${night.room}</div>
+            <p style="margin:4px 0 0;font-size:13.5px;color:var(--ink-2)">Everyone opens this on their own phone to join and vote.</p>
+            <div class="linkbox">
+              <input id="lnk" readonly value="${night.link}" aria-label="Join link">
+              <button class="btn ghost" id="copyLnk">Copy link</button>
+              <button class="btn ghost" id="imsg">Send to iMessage</button>
+            </div>
+            <div class="constraint-summary">${constraintPills()}</div>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn brass" id="toLobby">Go to the lobby →</button>
+        <button class="btn ghost" id="backStart">← Change the table</button>
+      </div>
+      <div class="sim-note">🔮 <span><b>Prototype note:</b> on the real app this QR/link opens Game Shelf on each person's phone. Here, the lobby lets you tap each player to stand in for “their phone.”</span></div>`;
+    drawQR(document.getElementById("qr"), night.room);
+    document.getElementById("copyLnk").onclick=()=>{try{navigator.clipboard.writeText(night.link);}catch(e){} toast("Link copied — paste it in the group chat");};
+    document.getElementById("imsg").onclick=()=>toast("(Prototype) Would open iMessage with the link");
+    document.getElementById("toLobby").onclick=()=>{night.phase="lobby";renderNight();};
+    document.getElementById("backStart").onclick=()=>{night.phase="start";renderNight();};
+  }
+  function constraintPills(){
+    const p=[];
+    p.push(night.cMaxTime?`⏱ Under ${night.cMaxTime}m`:"⏱ Any length");
+    p.push(night.cLoc==="couch"?"🛋 Couch":night.cLoc==="table"?"🪑 Table":"🛋🪑 Either");
+    p.push(night.cAtt==="background"?"👀 Half-watch":night.cAtt==="focus"?"🧠 All-in":"🎯 Any focus");
+    return p.map(t=>`<span class="cpill">${t}</span>`).join("");
+  }
+  function drawQR(cv, seed){
+    const ctx=cv.getContext("2d"), N=25, cell=cv.width/N;
+    let s=7; for(const ch of seed) s=(s*31+ch.charCodeAt(0))>>>0;
+    const rnd=()=>{s=(s*1664525+1013904223)>>>0; return s/4294967296;};
+    ctx.fillStyle="#fff"; ctx.fillRect(0,0,cv.width,cv.height);
+    const inF=(x,y)=>(x<7&&y<7)||(x>=N-7&&y<7)||(x<7&&y>=N-7);
+    ctx.fillStyle="#20201c";
+    for(let y=0;y<N;y++)for(let x=0;x<N;x++){ if(inF(x,y))continue; if(rnd()>0.52)ctx.fillRect(x*cell,y*cell,cell,cell);}
+    [[0,0],[N-7,0],[0,N-7]].forEach(([fx,fy])=>{
+      ctx.fillStyle="#20201c"; ctx.fillRect(fx*cell,fy*cell,7*cell,7*cell);
+      ctx.fillStyle="#fff";     ctx.fillRect((fx+1)*cell,(fy+1)*cell,5*cell,5*cell);
+      ctx.fillStyle="#20201c"; ctx.fillRect((fx+2)*cell,(fy+2)*cell,3*cell,3*cell);
+    });
+  }
+  function toast(msg){
+    const t=document.createElement("div"); t.className="toast"; t.textContent=msg;
+    document.body.appendChild(t); setTimeout(()=>t.remove(),1900);
+  }
+
+  // -- phase: lobby (host watches votes land) --
+  function renderLobby(b){
+    const elig=eligibleForNight();
+    const vs=voters();
+    const canReveal=vs.length>=2;
+    b.innerHTML=`
+      <div class="panel">
+        <div class="lobby-head">
+          <div><div class="rc-lbl">Table ${night.room}</div>
+            <div style="font-family:var(--disp);font-size:20px;font-weight:600;margin-top:2px">${vs.length} of ${roster().length} voted</div></div>
+          <button class="btn ghost" id="reShare">Show link</button>
+        </div>
+        <div class="constraint-summary" style="margin-top:8px">${constraintPills()}<span class="cpill">🎲 ${night.ballot.length} on the ballot</span></div>
+        <div class="join-list">
+          ${roster().map(p=>{const voted=night.votes[p.id]&&night.votes[p.id].length;
+            return `<div class="join-row">
+              <span class="av" style="background:${p.color}">${meepleSVG("#fff")}</span>
+              <div class="jn">${p.name}${p.guest?` <small>guest</small>`:p.role?` <small>${p.role}</small>`:""}</div>
+              ${voted?`<span class="jstat voted">Voted ✓</span>`
+                     :`<button class="jstat go" data-vote-as="${p.id}">Open their phone →</button>`}
+            </div>`;}).join("")}
+        </div>
+        <div class="addguest">
+          <input id="guestName" placeholder="Add a guest by name…" maxlength="18" aria-label="Guest name">
+          <button class="btn ghost" id="addGuest">＋ Add player</button>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn brass" id="reveal" ${canReveal?"":"disabled"}>Close voting & reveal →</button>
+        <button class="btn ghost" id="newNight2">Start over</button>
+        ${!canReveal?`<span style="align-self:center;color:var(--ink-2);font-size:13px">Need at least 2 votes in.</span>`:""}
+      </div>
+      <div class="sim-note">🔮 <span>Tap “Open their phone” to stand in for each person voting on their own device.</span></div>`;
+    b.querySelectorAll("[data-vote-as]").forEach(x=>x.onclick=()=>{night.activeVoter=x.dataset.voteAs;night.phase="vote";renderNight();});
+    document.getElementById("reShare").onclick=()=>{night.phase="share";renderNight();};
+    document.getElementById("addGuest").onclick=addGuest;
+    document.getElementById("guestName").addEventListener("keydown",e=>{if(e.key==="Enter")addGuest();});
+    document.getElementById("reveal").onclick=()=>{night.phase="reveal";renderNight();};
+    document.getElementById("newNight2").onclick=()=>{night=freshNight();renderNight();};
+  }
+  function addGuest(){
+    const inp=document.getElementById("guestName"); const name=(inp.value||"").trim();
+    if(!name){inp.focus();return;}
+    night.guests.push({id:"g"+Date.now(),name,color:GUEST_COLORS[night.guests.length%GUEST_COLORS.length],guest:true});
+    renderNight();
+  }
+
+  // -- phase: one person's ballot (their phone) --
+  function renderVote(b){
+    const voter=byId(night.activeVoter);
+    const myVotes=night.votes[voter.id]||[];
+    b.innerHTML=`
+      <div class="voter-banner">
+        <span class="av" style="background:${voter.color}">${meepleSVG("#fff")}</span>
+        <div><h3>Voting as ${voter.name}</h3>
+          <p>This is ${voter.name}'s phone — rank up to three, then submit.</p></div>
+      </div>
+      <p class="vote-help">Tap your favourites in order — <b>1st, 2nd, 3rd</b>. First choice is worth the most. Tap again to undo.</p>
+      <div class="ballot">
+        ${night.ballot.map(id=>{const g=G[id];const rank=myVotes.indexOf(id);
+          return `<button class="bcard" data-vote="${id}" ${rank>=0?`data-rank="${rank+1}"`:""}>
+            <div class="strip" style="background:linear-gradient(90deg,${g.c1},${g.c2})"></div>
+            <span class="pick">${rank>=0?rank+1:""}</span>
+            <div class="in"><div class="bn">${g.name}</div>
+              <div class="bmeta tnum">${g.time}m · ${g.players} · ${g.kind}${g.last>=30?" · 🕸":""}</div></div>
+          </button>`;}).join("")}
+      </div>
+      <div class="actions">
+        <button class="btn brass" id="submitVote" ${myVotes.length<1?"disabled":""}>Submit ${voter.name}'s votes →</button>
+        <button class="btn ghost" id="cancelVote">← Back to lobby</button>
+        ${myVotes.length<1?`<span style="align-self:center;color:var(--ink-2);font-size:13px">Pick at least one.</span>`:""}
+      </div>`;
+    b.querySelectorAll("[data-vote]").forEach(x=>x.onclick=()=>{
+      const cur=night.votes[voter.id]||(night.votes[voter.id]=[]);
+      const id=x.dataset.vote, i=cur.indexOf(id);
+      if(i>=0)cur.splice(i,1); else if(cur.length<3)cur.push(id);
+      renderNight();
+    });
+    document.getElementById("submitVote").onclick=()=>{night.activeVoter=null;night.phase="lobby";renderNight();};
+    document.getElementById("cancelVote").onclick=()=>{
+      if(!(night.votes[voter.id]&&night.votes[voter.id].length)) delete night.votes[voter.id];
+      night.activeVoter=null; night.phase="lobby"; renderNight();
+    };
+  }
+
+  // scoring: Borda 3/2/1 across voters, + freshness modifier
+  function tally(){
+    const base={}; night.ballot.forEach(id=>base[id]=0);
+    Object.values(night.votes).forEach(v=>v.forEach((id,idx)=>{base[id]+=[3,2,1][idx]||0;}));
+    const results = night.ballot.map(id=>{
+      const g=G[id]; let fresh=0, label="";
+      if(g.last>=30){fresh=1.5;label="Dusty-shelf boost";}
+      else if(g.last>=14){fresh=0.5;label="A while ago";}
+      else if(g.last<=3){fresh=-1;label="Just played";}
+      return {id, base:base[id], fresh, score:Math.max(0,base[id]+fresh), label};
+    }).filter(r=>r.base>0 || r.fresh!==0);
+    results.sort((a,b)=> b.score-a.score || G[b.id].last-G[a.id].last);
+    return results;
+  }
+
+  function renderReveal(b){
+    const res=tally();
+    const max=Math.max(...res.map(r=>r.score),1);
+    const top=res[0], second=res[1];
+    const tie = second && Math.abs(top.score-second.score)<0.75;
+    const parts=voters();
+    const captain=byId(parts[night.captainIdx % parts.length]) || byId(parts[0]);
+    const winner=top;
+    b.innerHTML=`
+      <div class="winner-hero">
+        <div class="eyebrow">Tonight we play</div>
+        <h2>${G[winner.id].name}</h2>
+        <p>${G[winner.id].time} min · ${G[winner.id].players} players · ${locLabel(G[winner.id].loc)}</p>
+      </div>
+      ${tie?`<div class="tie-note">🤝 <b>Photo finish.</b> ${G[top.id].name} and ${G[second.id].name} tied.
+        <b>${captain.name}</b> is <b>Captain of the Night</b> (the role rotates each week), so their pick breaks it —
+        and the dustier game gets the edge. ${G[winner.id].name} it is.</div>`:""}
+      <div class="results">
+        ${res.map((r,i)=>`
+          <div class="rrow ${i===0?"winner":""}">
+            <div class="rank">${i+1}</div>
+            <div class="info">
+              <div class="rn">${G[r.id].name} ${r.fresh>0?`<span class="fresh">↑ ${r.label}</span>`:r.fresh<0?`<span class="fresh" style="color:var(--crit)">↓ ${r.label}</span>`:""}</div>
+              <div class="rbar-wrap"><div class="rbar" style="width:0" data-w="${Math.round(r.score/max*100)}"></div></div>
+            </div>
+            <div class="score tnum">${r.score % 1 === 0 ? r.score : r.score.toFixed(1)}</div>
+          </div>`).join("")}
+      </div>
+      <div class="actions">
+        <button class="btn brass" id="logIt">✓ We played it — log the night</button>
+        <button class="btn ghost" id="reroll">Back to lobby</button>
+        <button class="btn ghost" id="restart">New night</button>
+      </div>
+      <p class="footnote">Score = ranked votes (3·2·1) ± a freshness nudge. Recently-played games lose a point; dusty ones gain one — so you rotate out of ruts without anyone having to argue for it.</p>`;
+    requestAnimationFrame(()=>b.querySelectorAll(".rbar").forEach(x=>x.style.width=x.dataset.w+"%"));
+    document.getElementById("reroll").onclick=()=>{night.phase="lobby";renderNight();};
+    document.getElementById("restart").onclick=()=>{night=freshNight();renderNight();};
+    document.getElementById("logIt").onclick=()=>{
+      const hero=b.querySelector(".winner-hero");
+      const nextCap=byId(parts[(night.captainIdx+1)%parts.length]);
+      hero.innerHTML=`<div class="eyebrow">Logged ✓</div><h2>Nice one</h2><p>Added to your stats — ${G[winner.id].name} won't come back up for a couple weeks. Captain passes to ${nextCap?nextCap.name:"the next player"} next Thursday.</p>`;
+      document.getElementById("logIt").disabled=true;
+      document.getElementById("logIt").textContent="Saved";
+    };
+  }
+
+  // ---------- STATS ----------
+  function renderStats(){
+    const totalPlays=GAMES.reduce((s,g)=>s+g.plays,0);
+    const totalMin=GAMES.reduce((s,g)=>s+g.plays*g.time,0);
+    const hrs=Math.round(totalMin/60);
+    const nights=42;
+    const mostPlayed=[...GAMES].sort((a,b)=>b.plays-a.plays).slice(0,5);
+    const dusty=[...GAMES].filter(g=>g.last>=25).sort((a,b)=>b.last-a.last).slice(0,5);
+    const maxWin=Math.max(...Object.values(WINS));
+    el.innerHTML=`<section class="tab">
+      <div class="eyebrow">Since we started tracking</div>
+      <h2 class="big">Family Stats</h2>
+      <p class="lead">Forty-two Thursdays of evidence. Who's on a heater, what's been loved to death, and which boxes are quietly gathering cobwebs.</p>
+
+      <div class="tiles">
+        <div class="tile"><div class="k">Games played</div><div class="v tnum">${totalPlays}</div></div>
+        <div class="tile"><div class="k">Time at the table</div><div class="v tnum">${hrs}<small> hrs</small></div></div>
+        <div class="tile"><div class="k">Game nights</div><div class="v tnum">${nights}</div></div>
+        <div class="tile"><div class="k">Games in collection</div><div class="v tnum">${GAMES.length}</div></div>
+      </div>
+
+      <div class="cols">
+        <div class="card2">
+          <h3>Wins by player</h3>
+          ${PLAYERS.map(p=>`<div class="barrow">
+            <div class="who">${av(p.color)}${p.name}</div>
+            <div class="track"><div class="fill" style="width:0;background:${p.color}" data-w="${Math.round(WINS[p.id]/maxWin*100)}">${WINS[p.id]}</div></div>
+          </div>`).join("")}
+          <div style="font-size:12.5px;color:var(--ink-2);margin-top:6px">Sara's holding the family belt 🏆</div>
+        </div>
+        <div class="card2">
+          <h3>Most-played boxes</h3>
+          ${mostPlayed.map(g=>`<div class="list-row">
+            <span class="sw" style="background:linear-gradient(${g.c1},${g.c2})"></span>
+            <span class="ln">${g.name}</span><span class="lv tnum">${g.plays}×</span></div>`).join("")}
+        </div>
+      </div>
+
+      <div class="cols">
+        <div class="card2">
+          <h3>🕸 The Dusty Shelf</h3>
+          <p style="font-size:13px;color:var(--ink-2);margin:-6px 0 12px">Overdue for a comeback — the engine gives these a boost on voting night.</p>
+          ${dusty.map(g=>`<div class="list-row">
+            <span class="sw" style="background:linear-gradient(${g.c1},${g.c2})"></span>
+            <span class="ln">${g.name}</span><span class="lv tnum">${g.last} days ago</span></div>`).join("")}
+        </div>
+        <div class="card2">
+          <h3>How we spend a night</h3>
+          <div style="display:flex;flex-direction:column;gap:11px;margin-top:2px">
+            ${[["Card & quick fillers",46,"#d98a24"],["Strategy & tile games",31,"#4b7a52"],["Party & team games",14,"#8a6db0"],["Dice & dominoes",9,"#3f6d8f"]].map(([n,pc,c])=>`
+              <div class="barrow"><div class="who" style="width:130px;font-size:12.5px">${n}</div>
+                <div class="track"><div class="fill" style="width:0;background:${c}" data-w="${pc}">${pc}%</div></div></div>`).join("")}
+          </div>
+        </div>
+      </div>
+      <p class="footnote">Sample data for the prototype — in v0.1 this fills in automatically every time you tap “log the night.”</p>
+    </section>`;
+    requestAnimationFrame(()=>el.querySelectorAll(".fill").forEach(x=>x.style.width=x.dataset.w+"%"));
+  }
+
+  // ---------- router ----------
+  function render(){
+    document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute("aria-selected", b.dataset.tab===tab));
+    if(tab==="shelf") renderShelf();
+    else if(tab==="night") renderNight();
+    else renderStats();
+  }
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render();});
+
+  // theme toggle
+  const root=document.documentElement;
+  const tb=document.getElementById("themeBtn");
+  function sync(){const dark = (root.dataset.theme==="dark")||(!root.dataset.theme&&matchMedia("(prefers-color-scheme:dark)").matches);
+    tb.textContent = dark?"☀️ Daylight":"🌙 Evening";}
+  tb.onclick=()=>{const dark=(root.dataset.theme==="dark")||(!root.dataset.theme&&matchMedia("(prefers-color-scheme:dark)").matches);
+    root.dataset.theme=dark?"light":"dark"; sync();};
+  sync();
+
+  render();
+})();
+</script>
