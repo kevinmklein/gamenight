@@ -13,12 +13,17 @@ recurring **Thursday Game Night** (or any night) easier and less rut-prone.
 - **Owner:** Kevin (Dad) — *novice web dev*: knows basic git/CLI/Netlify but needs explicit,
   step-by-step CLI + console instructions. Never assume tooling knowledge.
 
-## Current state (2026-07-08) — working end-to-end
-**The live app is fully operational.** Cloud-connected: silent anonymous sign-in succeeds,
-the strict Firestore rules are satisfied, and adding/browsing games works on desktop + mobile.
-(An earlier blocker — a truncated `VITE_FIREBASE_API_KEY` in Netlify — is fixed; the full
-39-char key is live and verified in the bundle. Never paste the key value into tracked files;
-it belongs only in `.env.local` and Netlify env vars.)
+## Current state (2026-07-08) — full prototype live, in QA/polish
+**All four tabs are built, wired to Firestore, and live.** Shelf (browse + search + filters +
+real box art + edit/remove), Game Time (real-time async voting), Stats (log + core stats),
+Add a Game. ~20 real games in the DB with a few real cover photos. Cloud-connected: silent
+anonymous auth + strict Firestore rules working on desktop + mobile. Now iterating on
+features/bugs; BGG auto-fill still pending the API token.
+
+Security note: the Firebase web API key is public by design (it ships in the client bundle);
+it was once committed in git history and flagged by GitHub. It's now **restricted in Google
+Cloud** to the site's referrers, so the alert is dismissible. Never paste the key value into
+tracked files — it belongs only in `.env.local` and Netlify env vars.
 
 Lessons kept for reference: Vite needs env names in exact UPPERCASE; Netlify env-var changes
 require a manual "Clear cache and deploy site"; copy API keys with the copy icon, not
@@ -127,9 +132,9 @@ First four are the hard "rule things out" constraints; the rest are soft prefere
 - **Dependency added:** `qrcode.react` (real scannable QR for the join link).
 - **Box art:** games may have an optional `image` field (URL or `/covers/*` path) shown on the
   shelf box + detail hero; falls back to the name-hash gradient `cover`. Set via the Add/Edit
-  form's "Box image URL"; BGG auto-fill will populate it later. `coverImageFor(game)` in
-  catalog.js resolves it, with a temporary `DEMO_COVERS` map (Boggle/Carcassonne/Catan → SVG
-  placeholders in `public/covers/`) for previewing the look before real art lands.
+  form's "Box image URL" (`coverImageFor(game)` in catalog.js resolves it); BGG auto-fill will
+  populate it later. Real photos live in `public/covers/` — Boggle/Carcassonne/Catan have real
+  `.jpg` box art wired up; the rest use gradient boxes until BGG lands.
 - **Game doc shape** (`games` collection): `name, kind, time, minPlayers, maxPlayers, players,
   loc, att, setup, cover{c1,c2}, image, last, lastPlayed, plays, source, createdAt`. `lastPlayed` is a
   real millis timestamp set by `logPlay`; the older `last` (static "days ago") is legacy —
