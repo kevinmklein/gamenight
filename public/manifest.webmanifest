@@ -1,0 +1,14 @@
+{
+  "name": "Game Shelf",
+  "short_name": "Game Shelf",
+  "description": "The Klein family board-game shelf — catalog, choose, and track Game Time.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#2b2a24",
+  "theme_color": "#2f4a3a",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

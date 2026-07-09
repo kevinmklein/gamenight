@@ -21,7 +21,7 @@ function LogPlay({ games }) {
   const [gameId, setGameId] = useState('')
   const [date, setDate] = useState(todayISO())
   const [roster, setRoster] = useState(FAMILY)
-  const [present, setPresent] = useState(FAMILY)
+  const [present, setPresent] = useState([])   // tap who actually played — nobody preselected
   const [winner, setWinner] = useState('')     // '' = co-op / no single winner
   const [minutes, setMinutes] = useState('')   // blank → falls back to the game's time
   const [guest, setGuest] = useState('')
@@ -61,8 +61,8 @@ function LogPlay({ games }) {
     setSaving(false)
     setToast(`Logged “${game.name}” 🎲`)
     setTimeout(() => setToast(''), 1900)
-    // Reset for the next log, keeping the roster & date so back-to-back nights are quick.
-    setGameId(''); setWinner(''); setMinutes(''); setPresent(roster)
+    // Reset for the next log, keeping the roster & date so back-to-back logs are quick.
+    setGameId(''); setWinner(''); setMinutes(''); setPresent([])
   }
 
   return (
@@ -119,7 +119,7 @@ function LogPlay({ games }) {
 
       <div className="actions">
         <button className="btn brass" disabled={!canSave} onClick={save}>
-          {saving ? 'Logging…' : 'Log this night'}
+          {saving ? 'Logging…' : 'Log this Game Time'}
         </button>
         {!gameId && <span className="hint">Pick a game to log it.</span>}
       </div>
@@ -163,7 +163,7 @@ function Dashboard({ games, plays }) {
       <div className="statgrid">
         <div className="statcard">
           <div className="num tnum">{s.nights}</div>
-          <div className="lbl">Nights logged</div>
+          <div className="lbl">Game Times logged</div>
         </div>
         <div className="statcard">
           <div className="num tnum">{formatDur(s.totalMin)}</div>
@@ -180,7 +180,7 @@ function Dashboard({ games, plays }) {
           <div className="eyebrow">Family leaderboard</div>
           <h3 className="stat-h">Wins per person</h3>
           {s.winRows.length === 0 ? (
-            <p className="hint">No wins recorded yet — log a night with a winner.</p>
+            <p className="hint">No wins recorded yet — log a Game Time with a winner.</p>
           ) : (
             <div className="lb">
               {s.winRows.map(([name, n], i) => (
@@ -214,7 +214,7 @@ function Dashboard({ games, plays }) {
       {plays.length > 0 && (
         <div className="panel">
           <div className="eyebrow">The log</div>
-          <h3 className="stat-h">Recent nights</h3>
+          <h3 className="stat-h">Recent Game Times</h3>
           <div className="lb">
             {plays.slice(0, 8).map((p) => (
               <div className="plrow" key={p.id}>
@@ -241,11 +241,16 @@ export default function Stats({ games, plays }) {
       <div className="eyebrow">Since we started tracking</div>
       <h2 className="big">Stats</h2>
       <p className="lead">
-        Log each game night — who played, who won, how long. It feeds the family
-        leaderboard and quietly powers Game Night’s freshness nudges down the line.
+        Who’s on a heater, what’s been loved to death, and which boxes are gathering dust.
+        Scroll down to log a Game Time — it feeds the leaderboard and powers Game Time’s
+        freshness nudges.
       </p>
-      <LogPlay games={games} />
       <Dashboard games={games} plays={plays} />
+      <div className="log-head">
+        <div className="eyebrow">Add to the record</div>
+        <h3 className="stat-h">Log a Game Time</h3>
+      </div>
+      <LogPlay games={games} />
     </section>
   )
 }

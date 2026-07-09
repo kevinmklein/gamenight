@@ -90,14 +90,81 @@ function GameDetail({ g, onClose }) {
   )
 }
 
+const NO_FILTERS = { players: '', loc: '', time: '', kind: '' }
+
+// Does a game seat exactly `n` players? Lenient when a bound is missing.
+function seatsPlayers(g, n) {
+  const min = g.minPlayers, max = g.maxPlayers
+  if (min != null && n < min) return false
+  if (max != null && n > max) return false
+  return true
+}
+
+function FilterBar({ f, setF, kinds, active, onClear }) {
+  const set = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.value }))
+  return (
+    <div className="filterbar">
+      <label className="filt">
+        <span>Players</span>
+        <select value={f.players} onChange={set('players')}>
+          <option value="">Any</option>
+          {[2, 3, 4, 5, 6, 7, 8].map((n) => <option key={n} value={n}>{n === 8 ? '8+' : n}</option>)}
+        </select>
+      </label>
+      <label className="filt">
+        <span>Where</span>
+        <select value={f.loc} onChange={set('loc')}>
+          <option value="">Anywhere</option>
+          <option value="couch">🛋 Couch</option>
+          <option value="table">🪑 Table</option>
+        </select>
+      </label>
+      <label className="filt">
+        <span>Length</span>
+        <select value={f.time} onChange={set('time')}>
+          <option value="">Any</option>
+          <option value="15">Under 15m</option>
+          <option value="30">Under 30m</option>
+          <option value="60">Under 60m</option>
+        </select>
+      </label>
+      <label className="filt">
+        <span>Type</span>
+        <select value={f.kind} onChange={set('kind')}>
+          <option value="">All</option>
+          {kinds.map((k) => <option key={k} value={k}>{k}</option>)}
+        </select>
+      </label>
+      {active > 0 && (
+        <button type="button" className="clear-filters" onClick={onClear}>Clear ✕</button>
+      )}
+    </div>
+  )
+}
+
 export default function Shelf({ games, onAdd }) {
   const [q, setQ] = useState('')
+  const [f, setF] = useState(NO_FILTERS)
   const [selected, setSelected] = useState(null)
+
+  const kinds = useMemo(
+    () => [...new Set(games.map((g) => g.kind).filter(Boolean))].sort(),
+    [games],
+  )
+  const activeCount = Object.values(f).filter(Boolean).length
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase()
-    return s ? games.filter((g) => g.name.toLowerCase().includes(s)) : games
-  }, [games, q])
+    return games.filter((g) => {
+      if (s && !g.name.toLowerCase().includes(s)) return false
+      if (f.players && !seatsPlayers(g, Number(f.players))) return false
+      if (f.loc === 'couch' && g.loc === 'table') return false
+      if (f.loc === 'table' && g.loc === 'couch') return false
+      if (f.time && !(g.time && g.time <= Number(f.time))) return false
+      if (f.kind && g.kind !== f.kind) return false
+      return true
+    })
+  }, [games, q, f])
 
   return (
     <section className="tab">
@@ -119,6 +186,11 @@ export default function Shelf({ games, onAdd }) {
         )}
       </div>
 
+      {games.length > 0 && (
+        <FilterBar f={f} setF={setF} kinds={kinds} active={activeCount}
+          onClear={() => setF(NO_FILTERS)} />
+      )}
+
       {games.length === 0 ? (
         <div className="empty">
           <h3>Your shelf is empty</h3>
@@ -126,7 +198,13 @@ export default function Shelf({ games, onAdd }) {
           <button className="btn brass" style={{ marginTop: 14 }} onClick={onAdd}>＋ Add a game</button>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="empty"><p>No games match “{q}”.</p></div>
+        <div className="empty">
+          <p>No games match {q ? `“${q}”` : 'those filters'}.</p>
+          {(activeCount > 0 || q) && (
+            <button className="btn ghost" style={{ marginTop: 12 }}
+              onClick={() => { setF(NO_FILTERS); setQ('') }}>Clear search & filters</button>
+          )}
+        </div>
       ) : (
         <div className="shelf">
           {filtered.map((g) => <GameBox key={g.id} g={g} onOpen={setSelected} />)}

@@ -134,7 +134,7 @@ export function RevealResults({ results, voterNames = [] }) {
       {tie && (
         <div className="tie-note">
           🤝 <b>Photo finish.</b> {top.game.name} and {second.game.name} tied.
-          {captain ? <> <b>{captain}</b> is <b>Captain of the Night</b> (it rotates weekly), so their call
+          {captain ? <> <b>{captain}</b> is <b>tonight’s Captain</b> (it rotates weekly), so their call
             breaks it — and the dustier game gets the edge.</> : ' The dustier game gets the edge.'} {w.name} it is.
         </div>
       )}

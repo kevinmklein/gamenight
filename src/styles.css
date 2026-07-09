@@ -111,7 +111,12 @@ h2.big{font-size:26px}
 .field{display:flex;flex-direction:column;gap:7px;margin-top:16px}
 .field:first-child{margin-top:0}
 .field > label{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-2);font-weight:700}
-.field input[type=text],.field input[type=number],.field select{font-family:var(--sans);font-size:15px;padding:10px 13px;border:1px solid var(--hair);border-radius:10px;background:var(--card);color:var(--ink);width:100%}
+.field input[type=text],.field input[type=number],.field input[type=date],.field select{font-family:var(--sans);font-size:15px;padding:10px 13px;border:1px solid var(--hair);border-radius:10px;background:var(--card);color:var(--ink);width:100%;height:44px;box-sizing:border-box}
+.field input[type=date]::-webkit-calendar-picker-indicator{opacity:.6;cursor:pointer}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .field input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.85)}}
+:root[data-theme=dark] .field input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.85)}
+
+.log-head{margin-top:30px;padding-top:22px;border-top:1px solid var(--hair)}
 .seg{display:inline-flex;background:var(--card);border:1px solid var(--hair);border-radius:11px;padding:3px;gap:2px;flex-wrap:wrap}
 .seg button{border:0;background:transparent;padding:8px 13px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--ink)}
 .seg button[aria-pressed="true"]{background:var(--felt);color:#f4ead2}
@@ -179,6 +184,14 @@ input.search:focus-visible{outline:3px solid var(--brass);outline-offset:2px;bor
 .plmeta{color:var(--ink-2);font-size:13px}
 .plwin{font-size:13px;color:var(--ink-2);white-space:nowrap}
 
+/* ---- Shelf filter bar ---- */
+.filterbar{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:16px;padding:14px 16px;background:var(--paper);border:1px solid var(--hair);border-radius:14px}
+.filt{display:flex;flex-direction:column;gap:5px;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);font-weight:700}
+.filt select{font-family:var(--sans);font-size:14px;letter-spacing:normal;text-transform:none;font-weight:500;padding:8px 11px;border:1px solid var(--hair);border-radius:9px;background:var(--card);color:var(--ink);min-width:112px}
+.clear-filters{align-self:flex-end;background:transparent;border:1px solid var(--hair);color:var(--ink-2);font-weight:600;font-size:13px;padding:8px 13px;border-radius:9px;cursor:pointer}
+.clear-filters:hover{color:var(--ink);border-color:var(--ink-2)}
+@media(max-width:560px){.filt{flex:1;min-width:calc(50% - 5px)}.filt select{min-width:0;width:100%}}
+
 /* ---- Game Night ---- */
 .stepper{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:20px 0 4px}
 .step{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--ink-2)}
@@ -219,9 +232,10 @@ input.search:focus-visible{outline:3px solid var(--brass);outline-offset:2px;bor
 .bcard{display:flex;align-items:center;gap:0;text-align:left;background:var(--card);border:1px solid var(--hair);border-radius:12px;overflow:hidden;cursor:pointer;padding:0;position:relative}
 .bcard .strip{width:8px;align-self:stretch;flex:none}
 .bcard .pick{width:34px;flex:none;text-align:center;font-family:var(--disp);font-weight:700;font-size:18px;color:var(--brass-lo)}
-.bcard .bin{padding:12px 14px 12px 2px}
+.bcard .bin{display:flex;flex-direction:column;gap:3px;padding:11px 14px;min-width:0}
 .bcard .bn{font-weight:700;font-size:15.5px}
-.bcard .bmeta{font-size:12.5px;color:var(--ink-2);margin-top:2px}
+.bcard .bmeta{font-size:12.5px;color:var(--ink-2)}
+.bcard.readonly{cursor:default}
 .bcard[data-rank]{border-color:var(--brass);box-shadow:0 0 0 1px var(--brass)}
 .bcard[data-rank] .pick{color:#20201c;background:var(--brass);align-self:stretch;display:flex;align-items:center;justify-content:center}
 

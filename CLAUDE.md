@@ -34,7 +34,8 @@ Guests/extended family add a lightweight profile on the fly (planned: on the Gam
 
 ## The Three Features
 1. **The Shelf** — visual library. Games shown as boxes on wooden shelves. ✅ Built: browse,
-   search, click a box → **detail modal** (specs, tags, play history), remove-from-shelf inside it.
+   **search + filter bar** (players / where / length / type), click a box → **detail modal**
+   (specs, tags, play history), remove-from-shelf inside it.
 2. **Game Night** — the voting engine (see rules below). ✅ Built & wired to the real catalog
    with **real-time Firestore rooms**. Host: Set the Table (constraints) → session created +
    ballot built from the live shelf → Share (real scannable QR + `#/join/CODE` link) → live
@@ -47,6 +48,20 @@ Guests/extended family add a lightweight profile on the fly (planned: on the Gam
    wins-per-person leaderboard, the Dusty Shelf, and a recent-nights log. Logging a play
    also freshens the game's `lastPlayed`/`plays`, seeding Game Night's future freshness math.
    Not yet built: editing/removing a logged play (removal needs a `lastPlayed` recompute).
+
+## Naming (UI copy vs. code)
+The feature is branded **"Game Time"** in the UI (tab label, headings, "Log a Game Time",
+"Recent Game Times", etc.). The only place "Game Night" survives on purpose is the header
+tagline **"Thursday Game Night HQ"**. In code + this doc the feature is still called *Game
+Night* (component `GameNight.jsx`, `night.js`, tab id `'night'`) — don't rename those.
+
+## PWA / install
+The app is installable: `public/manifest.webmanifest` (display `standalone`, theme `--felt`)
++ apple-mobile-web-app meta in `index.html`, icon `public/icon.svg` (placeholder meeple —
+**replace with the branding session's real PNG icons** when they land; iOS wants a PNG
+`apple-touch-icon`). No service worker yet (avoids stale-cache surprises), so the automatic
+install *prompt* won't fire — family "Add to Home Screen" from the browser menu works and
+launches standalone. A scanned QR always opens the browser first; that's inherent to the web.
 
 ## Locked Decisions
 - **Aesthetic: Cozy tabletop** — felt green (`--felt #2f4a3a`), walnut, brass (`--brass #c6902f`),

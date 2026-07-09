@@ -89,7 +89,7 @@ export default function GameNight({ games, uid }) {
   return (
     <section className="tab">
       <div className="eyebrow">The main event</div>
-      <h2 className="big">Game Night</h2>
+      <h2 className="big">Game Time</h2>
       <p className="lead">
         One person sets the table and shares a link. Everyone votes from their own phone whenever
         they’re ready — the engine finds the game the whole table agrees on and nudges you out of ruts.
@@ -104,9 +104,9 @@ export default function GameNight({ games, uid }) {
             {logged ? (
               <span className="badge cloud">✓ Logged to Stats — add who won on the Stats tab</span>
             ) : (
-              <button className="btn brass" onClick={logNight}>✓ We’re playing this — log the night</button>
+              <button className="btn brass" onClick={logNight}>✓ We’re playing this — log this Game Time</button>
             )}
-            <button className="btn ghost" onClick={reset}>Start a new night</button>
+            <button className="btn ghost" onClick={reset}>Start a new Game Time</button>
           </div>
         </>
       ) : step === 'setup' ? (
@@ -129,7 +129,7 @@ export default function GameNight({ games, uid }) {
 function SetTable({ c, setC, count, games, onOpen, busy }) {
   const set = (k) => (v) => setC((s) => ({ ...s, [k]: v }))
   if (!games.length) {
-    return <div className="soon">Add a few games on the <b>Add a Game</b> tab first — Game Night
+    return <div className="soon">Add a few games on the <b>Add a Game</b> tab first — Game Time
       votes on your real shelf.</div>
   }
   return (

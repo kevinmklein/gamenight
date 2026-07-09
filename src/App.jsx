@@ -57,9 +57,9 @@ export default function App() {
 
   const tabs = [
     ['shelf', 'The Shelf'],
-    ['add', 'Add a Game'],
-    ['night', 'Game Night'],
+    ['night', 'Game Time'],
     ['stats', 'Stats'],
+    ['add', 'Add a Game'],
   ]
 
   const joining = route.name === 'join'

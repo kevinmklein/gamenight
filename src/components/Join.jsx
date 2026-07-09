@@ -41,13 +41,37 @@ export default function Join({ code, uid }) {
     )
   } else if (myVote && !editing) {
     body = (
-      <div className="panel waiting">
-        <Avatar color={myVote.color} size={44} />
-        <h3>Thanks, {myVote.name} — your vote’s in.</h3>
-        <p>Hang tight while everyone else votes. The host reveals tonight’s pick when the table’s ready.</p>
-        <div className="join-tally">{votes.length} vote{votes.length === 1 ? '' : 's'} so far</div>
-        <button className="btn ghost" onClick={() => setEditing(true)}>Change my vote</button>
-      </div>
+      <>
+        <div className="panel waiting">
+          <Avatar color={myVote.color} size={44} />
+          <h3>Thanks, {myVote.name} — your vote’s in.</h3>
+          <p>When everyone’s voted, the host reveals tonight’s pick. <b>This screen updates on
+            its own</b> — keep it open and the winner shows up right here.</p>
+          <div className="join-tally">{votes.length} vote{votes.length === 1 ? '' : 's'} in so far</div>
+          <button className="btn ghost" onClick={() => setEditing(true)}>Change my vote</button>
+        </div>
+        <div className="panel">
+          <div className="eyebrow">While you wait</div>
+          <h3 className="stat-h">On the table tonight</h3>
+          <p className="hint" style={{ marginTop: 0 }}>The {session.ballot.length} games in the running:</p>
+          <div className="ballot">
+            {session.ballot.map((g) => {
+              const c = g.cover || { c1: '#3a3a3a', c2: '#222' }
+              return (
+                <div className="bcard readonly" key={g.id}>
+                  <span className="strip" style={{ background: `linear-gradient(90deg, ${c.c1}, ${c.c2})` }} />
+                  <span className="bin">
+                    <span className="bn">{g.name}</span>
+                    <span className="bmeta tnum">
+                      {g.time ? `${g.time}m` : ''}{g.players ? ` · ${g.players}` : ''} · {g.kind}
+                    </span>
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </>
     )
   } else {
     body = (
@@ -62,7 +86,7 @@ export default function Join({ code, uid }) {
 
   return (
     <section className="tab">
-      <div className="eyebrow">Game Night · Table {code}</div>
+      <div className="eyebrow">Game Time · Table {code}</div>
       <h2 className="big">Cast your vote</h2>
       {body}
     </section>
