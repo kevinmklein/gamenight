@@ -1,8 +1,6 @@
 import { useMemo, useState } from 'react'
-import { logPlay, playedDaysAgo, hasFirebase } from '../lib/catalog.js'
-
-// Default family roster (see CLAUDE.md). Guests get added on the fly per night.
-const FAMILY = ['Kevin', 'Stacey', 'Sara', 'Sophia']
+import { logPlay, playedDaysAgo, agoLabel, hasFirebase } from '../lib/catalog.js'
+import { FAMILY } from '../lib/family.js'
 
 const todayISO = () => new Date().toISOString().slice(0, 10)
 
@@ -12,9 +10,6 @@ function formatDur(min) {
   const m = min % 60
   return h ? (m ? `${h}h ${m}m` : `${h}h`) : `${m}m`
 }
-const agoLabel = (d) =>
-  d == null ? 'never played' : d === 0 ? 'today' : d === 1 ? 'yesterday'
-    : d < 30 ? `${d} days ago` : d < 60 ? '~1 month ago' : `${Math.round(d / 30)} months ago`
 
 // ---- the "log a game night" form ----
 function LogPlay({ games }) {

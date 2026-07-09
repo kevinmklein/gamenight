@@ -20,6 +20,12 @@ Add a Game. ~20 real games in the DB with a few real cover photos. Cloud-connect
 anonymous auth + strict Firestore rules working on desktop + mobile. Now iterating on
 features/bugs; BGG auto-fill still pending the API token.
 
+2026-07-08 architecture pass: fixed two voting bugs (room-code collisions could resurrect a
+dead session's votes → host now re-rolls via `sessionExists()`; the freshness nudge could
+crown a zero-vote game → `tally()` now only scores voted games) and de-duplicated shared
+code (`FAMILY`/`colorFor` → `src/lib/family.js`; `Seg`/`Meeple` → `gameNightBits.jsx`;
+`agoLabel` + `FALLBACK_COVER` → `catalog.js`). Verified end-to-end in the browser.
+
 Security note: the Firebase web API key is public by design (it ships in the client bundle);
 it was once committed in git history and flagged by GitHub. It's now **restricted in Google
 Cloud** to the site's referrers, so the alert is dismissible. Never paste the key value into
@@ -88,7 +94,8 @@ launches standalone. A scanned QR always opens the browser first; that's inheren
    dusty/unplayed, variety of kinds. Stops the ballot being all short/familiar games.
 3. **Ranked approval vote** — each player picks top 3, ranked. Borda points **3 / 2 / 1**.
 4. **Freshness nudge (anti-rut)** — dusty (≥30d) **+1.5**, (14–29d) **+0.5**, just-played
-   (≤3d) **−1**. Rotates the group out of ruts automatically.
+   (≤3d) **−1**. Rotates the group out of ruts automatically. **Applies only to games with
+   at least one vote** — the nudge reorders the voted set; a zero-vote game can never win.
 5. **Tiebreak** (top two within ~0.75): **Captain of the Night** (rotates weekly) decides;
    otherwise **Dusty Shelf rule** (longer-unplayed wins). **Wildcard token** planned.
 
@@ -118,14 +125,21 @@ First four are the hard "rule things out" constraints; the rest are soft prefere
   - `src/components/AddGame.jsx` — manual intake form.
   - `src/components/Stats.jsx` — log-a-night form + core-stats dashboard.
   - `src/lib/night.js` — pure voting-engine logic (`eligible`, `buildBallot`, `tally`,
-    `captainFor`, `makeRoomCode`, `joinUrl`, `colorFor`, `FAMILY`). No Firestore/React.
+    `captainFor`, `makeRoomCode`, `joinUrl`). No Firestore/React.
+  - `src/lib/family.js` — single source of truth for the family roster + player colors
+    (`FAMILY`, `colorFor`). Used by Game Night UI and Stats.
   - `src/components/GameNight.jsx` — host flow (Set the Table → Share → Lobby → Reveal).
+    On open it re-rolls the room code if `sessionExists()` (codes recycle; reusing a live
+    one would resurrect the old session's votes subcollection in the new lobby).
   - `src/components/Join.jsx` — the `#/join/CODE` voter view.
   - `src/components/gameNightBits.jsx` — shared UI (`BallotPicker`, `VoteFlow`,
-    `IdentityPicker`, `RevealResults`, `Avatar`, `Meeple`).
+    `IdentityPicker`, `RevealResults`, `Avatar`, `Meeple`, `Seg`). `Seg` + `Meeple` live
+    ONLY here — GameNight, GameForm, and App import them; don't re-define locally.
   - `catalog.js` also exports: `subscribePlays`, `logPlay(play)`, `playedDaysAgo(game)`
-    (live days-since; falls back to legacy static `last`); `getUid(user)` (stable per-device
-    id); and the session API `createSession`, `subscribeSession`, `subscribeVotes`,
+    (live days-since; falls back to legacy static `last`); `agoLabel(d)` (human label,
+    handles null = "never played"); `FALLBACK_COVER` (the one gradient fallback — never
+    hand-write `{c1:'#3a3a3a',…}`); `getUid(user)` (stable per-device id); and the session
+    API `createSession`, `sessionExists`, `subscribeSession`, `subscribeVotes`,
     `submitVote`, `revealSession`.
 - **Routing:** tiny hash router in `App.jsx`. `#/join/CODE` → voter view (tabs hidden);
   everything else → the normal tabbed app. Hash routing needs no Netlify redirect config.
@@ -187,7 +201,13 @@ Known gaps / follow-ups surfaced while building Game Night:
 3. **Stats:** edit/remove a logged play (needs `lastPlayed` recompute); per-game "log a play"
    shortcut from the Shelf detail modal.
 4. **BGG auto-fill** once the token lands.
-5. Verified in cloud mode — left a couple of throwaway test sessions (`CROW-*`, `LYNX-*`) in the
-   `sessions` collection; harmless (random codes, not shown anywhere), clear anytime.
+5. Verified in cloud mode — left a few throwaway test sessions (`CROW-*`, `LYNX-*`, `OWL-748`)
+   in the `sessions` collection; harmless (random codes, not shown anywhere), clear anytime.
+   Better: set a Firestore **TTL policy** on `sessions` keyed to `createdAt` so old rooms
+   self-delete (also shrinks the room-code collision window).
 6. Optional: draft a "add ~100 games fast" bulk-intake workflow.
 7. Bundle is ~665 kB (Firebase + qrcode). Fine for now; code-split later if load feels slow.
+8. "Export my shelf" JSON-download button — cheap backup insurance, since the open anonymous
+   rules mean anyone with the URL could write/delete data.
+9. One-time cleanup: migrate remaining legacy `last` fields to `lastPlayed` timestamps, then
+   drop the fallback branch in `playedDaysAgo()`.

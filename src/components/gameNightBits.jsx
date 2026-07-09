@@ -1,11 +1,25 @@
 import { useEffect, useRef, useState } from 'react'
-import { captainFor, colorFor, FAMILY } from '../lib/night.js'
+import { captainFor } from '../lib/night.js'
+import { colorFor, FAMILY } from '../lib/family.js'
+import { FALLBACK_COVER } from '../lib/catalog.js'
 
-export function Meeple({ fill = '#fff', size = 20 }) {
+export function Meeple({ fill = '#fff', size = 20, className }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} aria-hidden="true">
+    <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill={fill} aria-hidden="true">
       <path d="M12 2a3 3 0 0 0-3 3c0 1 .5 1.8 1.2 2.4C8.8 8.2 7 9.6 7 12v1l-3 1v3l4-1v6h8v-6l4 1v-3l-3-1v-1c0-2.4-1.8-3.8-3.2-4.6C13.5 6.8 14 6 14 5a3 3 0 0 0-2-3z" />
     </svg>
+  )
+}
+
+// Segmented button row — shared by the Set the Table constraints and the game form.
+export function Seg({ value, onChange, options }) {
+  return (
+    <div className="seg">
+      {options.map(([v, label]) => (
+        <button key={String(v)} type="button" aria-pressed={value === v}
+          onClick={() => onChange(v)}>{label}</button>
+      ))}
+    </div>
   )
 }
 
@@ -82,7 +96,7 @@ export function BallotPicker({ ballot, value, onChange, onSubmit, submitLabel, o
       <div className="ballot">
         {ballot.map((g) => {
           const rank = value.indexOf(g.id)
-          const c = g.cover || { c1: '#3a3a3a', c2: '#222' }
+          const c = g.cover || FALLBACK_COVER
           return (
             <button key={g.id} type="button" className="bcard"
               data-rank={rank >= 0 ? rank + 1 : undefined} onClick={() => toggle(g.id)}>

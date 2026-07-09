@@ -1,18 +1,7 @@
 // Game Night — the pure voting-engine logic (no Firestore, no React).
 // Session persistence lives in catalog.js; this file is the rules from CLAUDE.md:
 // eligibility gate → smart shortlist → ranked Borda vote → freshness nudge → tiebreak.
-import { playedDaysAgo } from './catalog.js'
-
-export const FAMILY = ['Kevin', 'Stacey', 'Sara', 'Sophia']
-const PLAYER_COLOR = { Kevin: '#3f6d8f', Stacey: '#a06a4f', Sara: '#4b7a52', Sophia: '#8a6db0' }
-const GUEST_COLORS = ['#c08a3e', '#3f8f8a', '#a06a4f', '#6a7a3f', '#7a5a9a', '#c26a6a']
-
-export function colorFor(name = '') {
-  if (PLAYER_COLOR[name]) return PLAYER_COLOR[name]
-  let h = 0
-  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0
-  return GUEST_COLORS[h % GUEST_COLORS.length]
-}
+import { playedDaysAgo, FALLBACK_COVER } from './catalog.js'
 
 // Days-since for a ballot snapshot (never-played sorts as "dustiest").
 const dust = (g) => { const d = playedDaysAgo(g); return d == null ? 1e9 : d }
@@ -25,7 +14,7 @@ function snapshot(g) {
   return {
     id: g.id, name: g.name, kind: g.kind, time: g.time || null,
     players: g.players || '', loc: g.loc || 'either', att: g.att || 'semi',
-    cover: g.cover || { c1: '#3a3a3a', c2: '#222' },
+    cover: g.cover || FALLBACK_COVER,
     plays: g.plays || 0, last: g.last ?? null, lastPlayed: g.lastPlayed ?? null,
   }
 }
@@ -61,20 +50,22 @@ export function buildBallot(games, c = {}, size = 8) {
 
 // Ranked-approval tally: Borda 3/2/1 across voters + the freshness nudge.
 // `votes` is an array of { ranking: [gameId, gameId, gameId] }.
+// Only games somebody actually voted for make the results — the freshness nudge
+// reorders the voted set, it can never crown a game with zero votes.
 export function tally(ballot = [], votes = []) {
   const base = {}
   ballot.forEach((g) => { base[g.id] = 0 })
   votes.forEach((v) => (v.ranking || []).forEach((id, i) => {
     if (base[id] != null) base[id] += [3, 2, 1][i] || 0
   }))
-  const results = ballot.map((g) => {
+  const results = ballot.filter((g) => base[g.id] > 0).map((g) => {
     const d = playedDaysAgo(g)
     let fresh = 0, label = ''
     if (d == null || d >= 30) { fresh = 1.5; label = 'Dusty-shelf boost' }
     else if (d >= 14) { fresh = 0.5; label = 'A while ago' }
     else if (d <= 3) { fresh = -1; label = 'Just played' }
     return { id: g.id, game: g, base: base[g.id], fresh, score: Math.max(0, base[g.id] + fresh), label }
-  }).filter((r) => r.base > 0 || r.fresh !== 0)
+  })
   results.sort((a, b) => b.score - a.score || dust(b.game) - dust(a.game))
   return results
 }

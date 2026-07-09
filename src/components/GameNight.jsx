@@ -4,9 +4,9 @@ import {
   eligible, buildBallot, tally, makeRoomCode, joinUrl, constraintPills,
 } from '../lib/night.js'
 import {
-  createSession, subscribeSession, subscribeVotes, submitVote, revealSession, logPlay,
+  createSession, sessionExists, subscribeSession, subscribeVotes, submitVote, revealSession, logPlay,
 } from '../lib/catalog.js'
-import { BallotPicker, VoteFlow, RevealResults, Avatar } from './gameNightBits.jsx'
+import { BallotPicker, VoteFlow, RevealResults, Avatar, Seg } from './gameNightBits.jsx'
 
 const STEPS = ['Set the Table', 'Everyone Votes', 'Tonight We Play']
 
@@ -17,17 +17,6 @@ function Stepper({ cur }) {
         <span key={s} className={`step ${cur === i ? 'on' : ''} ${cur > i ? 'done' : ''}`}>
           <span className="num">{cur > i ? '✓' : i + 1}</span>{s}
         </span>
-      ))}
-    </div>
-  )
-}
-
-function Seg({ value, onChange, options }) {
-  return (
-    <div className="seg">
-      {options.map(([v, label]) => (
-        <button key={String(v)} type="button" aria-pressed={value === v}
-          onClick={() => onChange(v)}>{label}</button>
       ))}
     </div>
   )
@@ -56,7 +45,10 @@ export default function GameNight({ games, uid }) {
   async function openTable() {
     setBusy(true)
     const ballot = buildBallot(games, c)
-    const newCode = makeRoomCode()
+    // Re-roll on collision: codes get reused over time, and reusing a live one
+    // would resurrect the old session's votes in the new lobby.
+    let newCode = makeRoomCode()
+    for (let tries = 0; tries < 8 && await sessionExists(newCode); tries++) newCode = makeRoomCode()
     await createSession(newCode, { phase: 'voting', constraints: c, ballot, host: uid })
     setCode(newCode)
     setStep('share')

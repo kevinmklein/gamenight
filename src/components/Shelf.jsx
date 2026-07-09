@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { deleteGame, updateGame, playedDaysAgo, coverImageFor } from '../lib/catalog.js'
+import {
+  deleteGame, updateGame, playedDaysAgo, agoLabel, coverImageFor, FALLBACK_COVER,
+} from '../lib/catalog.js'
 import GameForm from './GameForm.jsx'
-
-const agoLabel = (d) =>
-  d === 0 ? 'today' : d === 1 ? 'yesterday' : d < 30 ? `${d} days ago`
-    : d < 60 ? 'about a month ago' : `${Math.round(d / 30)} months ago`
 
 const locGlyph = (l) => (l === 'couch' ? '🛋' : l === 'table' ? '🪑' : '🛋🪑')
 const locLabel = (l) => (l === 'couch' ? 'Couch-friendly' : l === 'table' ? 'Needs a table' : 'Table or couch')
@@ -12,7 +10,7 @@ const attLabel = (a) =>
   a === 'background' ? 'Background-OK' : a === 'focus' ? 'Needs focus' : 'Light focus'
 
 function GameBox({ g, onOpen }) {
-  const cover = g.cover || { c1: '#3a3a3a', c2: '#222' }
+  const cover = g.cover || FALLBACK_COVER
   const img = coverImageFor(g)
   const [broken, setBroken] = useState(false)
   const showImg = img && !broken
@@ -52,7 +50,7 @@ function GameDetail({ g, onClose }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose, editing])
 
-  const cover = g.cover || { c1: '#3a3a3a', c2: '#222' }
+  const cover = g.cover || FALLBACK_COVER
   const heroImg = coverImageFor(g)
   const heroStyle = heroImg
     ? { backgroundImage: `url(${heroImg})`, backgroundSize: 'cover', backgroundPosition: 'center' }

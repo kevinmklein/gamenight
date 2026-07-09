@@ -5,7 +5,7 @@
 import { hasFirebase, db } from './firebase.js'
 import {
   collection, onSnapshot, addDoc, deleteDoc, updateDoc, increment,
-  doc, setDoc, query, orderBy, serverTimestamp,
+  doc, getDoc, setDoc, query, orderBy, serverTimestamp,
 } from 'firebase/firestore'
 
 export { hasFirebase }
@@ -25,6 +25,10 @@ export function getUid(user) {
     return id
   } catch { return 'u-anon' }
 }
+
+// Neutral gradient shown when a game somehow has no stored cover (old docs,
+// frozen ballot snapshots). One constant so every screen falls back the same way.
+export const FALLBACK_COVER = { c1: '#3a3a3a', c2: '#222' }
 
 // A game's box "cover" is a gradient derived from its name, so every game gets a
 // distinct, stable box even before we have real art from BoardGameGeek.
@@ -106,6 +110,13 @@ export function playedDaysAgo(game = {}) {
   return null
 }
 
+// Human label for a days-ago count ("today", "3 days ago", "about a month ago").
+// Pairs with playedDaysAgo(); null (never played) gets its own label.
+export function agoLabel(d) {
+  return d == null ? 'never played' : d === 0 ? 'today' : d === 1 ? 'yesterday'
+    : d < 30 ? `${d} days ago` : d < 60 ? 'about a month ago' : `${Math.round(d / 30)} months ago`
+}
+
 function lsReadPlays() {
   try { return JSON.parse(localStorage.getItem(PLAYS_KEY)) || [] } catch { return [] }
 }
@@ -170,6 +181,18 @@ function lsSessions() {
 function lsWriteSessions(map) {
   localStorage.setItem(SESS_KEY, JSON.stringify(map))
   window.dispatchEvent(new Event('sessions-change'))
+}
+
+// Is there already a session under this code? Room codes have a small space
+// (~9k combos) and old sessions stick around, so the host re-rolls on collision —
+// otherwise setDoc would overwrite the old session doc while its votes
+// subcollection survives, and the new lobby would inherit ghost voters.
+export async function sessionExists(code) {
+  if (hasFirebase) {
+    const snap = await getDoc(doc(db, 'sessions', code))
+    return snap.exists()
+  }
+  return Boolean(lsSessions()[code])
 }
 
 export async function createSession(code, data) {

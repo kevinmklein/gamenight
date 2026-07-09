@@ -6,12 +6,7 @@ import AddGame from './components/AddGame.jsx'
 import Stats from './components/Stats.jsx'
 import GameNight from './components/GameNight.jsx'
 import Join from './components/Join.jsx'
-
-const Meeple = ({ size = 26, fill = '#e0aa4c' }) => (
-  <svg className="meeple" width={size} height={size} viewBox="0 0 24 24" fill={fill} aria-hidden="true">
-    <path d="M12 2a3 3 0 0 0-3 3c0 1 .5 1.8 1.2 2.4C8.8 8.2 7 9.6 7 12v1l-3 1v3l4-1v6h8v-6l4 1v-3l-3-1v-1c0-2.4-1.8-3.8-3.2-4.6C13.5 6.8 14 6 14 5a3 3 0 0 0-2-3z" />
-  </svg>
-)
+import { Meeple } from './components/gameNightBits.jsx'
 
 // Tiny hash router. `#/join/CODE` opens the voter view (shared link/QR target);
 // everything else is the normal tabbed app.
@@ -69,7 +64,7 @@ export default function App() {
       <header className="top">
         <div className="brand">
           <div>
-            <h1><Meeple /> Game Shelf</h1>
+            <h1><Meeple className="meeple" size={26} fill="#e0aa4c" /> Game Shelf</h1>
             <div className="sub">The Klein family collection · Thursday Game Night HQ</div>
           </div>
           <div className="hdr-right">

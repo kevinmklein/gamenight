@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { coverFor } from '../lib/catalog.js'
+import { Seg } from './gameNightBits.jsx'
 
 const KINDS = ['Card', 'Strategy', 'Party', 'Dice', 'Dominoes', 'Abstract', 'Family']
 const BLANK = {
@@ -16,18 +17,6 @@ function fromGame(g) {
     loc: g.loc || 'either', att: g.att || 'semi', setup: g.setup || 'quick',
     image: g.image || '',
   }
-}
-
-function Seg({ value, onChange, options }) {
-  return (
-    <div className="seg">
-      {options.map(([v, label]) => (
-        <button key={String(v)} type="button" aria-pressed={value === v} onClick={() => onChange(v)}>
-          {label}
-        </button>
-      ))}
-    </div>
-  )
 }
 
 // Shared game intake form. `mode` = 'add' | 'edit'.

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { subscribeSession, subscribeVotes, submitVote } from '../lib/catalog.js'
+import { subscribeSession, subscribeVotes, submitVote, FALLBACK_COVER } from '../lib/catalog.js'
 import { tally, constraintPills } from '../lib/night.js'
 import { VoteFlow, RevealResults, Avatar } from './gameNightBits.jsx'
 
@@ -56,7 +56,7 @@ export default function Join({ code, uid }) {
           <p className="hint" style={{ marginTop: 0 }}>The {session.ballot.length} games in the running:</p>
           <div className="ballot">
             {session.ballot.map((g) => {
-              const c = g.cover || { c1: '#3a3a3a', c2: '#222' }
+              const c = g.cover || FALLBACK_COVER
               return (
                 <div className="bcard readonly" key={g.id}>
                   <span className="strip" style={{ background: `linear-gradient(90deg, ${c.c1}, ${c.c2})` }} />
