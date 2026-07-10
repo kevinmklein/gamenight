@@ -108,7 +108,7 @@ export default function GameNight({ games, uid }) {
         <VoteFlow ballot={session.ballot} existingVote={myVote} onSubmit={castVote} />
       ) : step === 'share' ? (
         <Share code={code} c={c} ballot={session?.ballot || []}
-          onLobby={() => setStep('lobby')} onBack={reset} />
+          onLobby={() => setStep('lobby')} onVote={() => setStep('vote')} onBack={reset} />
       ) : (
         <Lobby code={code} c={c} ballot={session?.ballot || []} votes={votes} isHost
           onShare={() => setStep('share')} onVote={() => setStep('vote')}
@@ -166,7 +166,7 @@ function SetTable({ c, setC, count, games, onOpen, busy }) {
   )
 }
 
-function Share({ code, c, onLobby, onBack }) {
+function Share({ code, c, onLobby, onVote, onBack }) {
   const link = joinUrl(code)
   const [copied, setCopied] = useState(false)
   const copy = async () => {
@@ -194,7 +194,8 @@ function Share({ code, c, onLobby, onBack }) {
         </div>
       </div>
       <div className="actions">
-        <button className="btn brass" onClick={onLobby}>Go to the lobby →</button>
+        <button className="btn brass" onClick={onVote}>Cast my vote →</button>
+        <button className="btn ghost" onClick={onLobby}>Go to the lobby</button>
         <button className="btn ghost" onClick={onBack}>← Change the table</button>
       </div>
     </>

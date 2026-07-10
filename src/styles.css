@@ -99,9 +99,15 @@ h2.big{font-size:26px}
 .seg button[aria-pressed="true"]{background:var(--felt);color:#f4ead2}
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;align-items:center}
 .hint{font-size:13px;color:var(--ink-2)}
+.hint.warn{color:#b3432c;display:block;margin-top:6px}
+.cover-upload{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cover-thumb{width:56px;height:56px;object-fit:cover;border-radius:9px;border:1px solid var(--hair);flex:none}
+.file-btn{cursor:pointer;display:inline-flex;align-items:center}
 .soon{margin-top:22px;background:var(--paper);border:1px dashed var(--hair);border-radius:14px;padding:22px;color:var(--ink-2)}
 .soon a{color:var(--brass-lo)}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--felt);color:#f4ead2;padding:11px 18px;border-radius:11px;font-size:13.5px;font-weight:600;box-shadow:0 10px 24px -8px var(--shadow);z-index:60;animation:fade .2s}
+/* pull-to-refresh */
+.ptr-indicator{display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:13px;font-weight:700;color:var(--ink-2);transition:height .18s ease;text-align:center}
 /* search box */
 .search-wrap{position:relative;display:inline-block}
 .search-ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.55;pointer-events:none}
@@ -150,6 +156,9 @@ input.search:focus-visible{outline:3px solid var(--brass);outline-offset:2px;bor
 .statcard .lbl{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);font-weight:700;margin-top:8px}
 .stat-h{font-family:var(--disp);font-size:19px;margin:2px 0 12px}
 
+.captain-row{display:flex;align-items:center;gap:12px;margin-top:10px}
+.cap-name{font-family:var(--disp);font-size:17px;font-weight:700;color:var(--ink)}
+.cap-next{font-size:12.5px;color:var(--ink-2)}
 .lb{display:flex;flex-direction:column;gap:10px}
 .lbrow{display:grid;grid-template-columns:minmax(70px,auto) 1fr auto;align-items:center;gap:12px}
 .lbname{font-weight:600;font-size:14.5px;color:var(--ink)}

@@ -2,6 +2,36 @@ import { useState } from 'react'
 import { coverFor } from '../lib/catalog.js'
 import { Seg } from './gameNightBits.jsx'
 
+const MAX_DIM = 700
+
+// Resize + compress a chosen photo client-side into a small JPEG data URL —
+// keeps it well under Firestore's 1MiB doc limit without needing Firebase
+// Storage (a separate product + its own security rules) just for box art.
+function resizePhoto(file, maxDim = MAX_DIM, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = () => reject(new Error('read-failed'))
+    reader.onload = () => {
+      const img = new Image()
+      img.onerror = () => reject(new Error('decode-failed'))
+      img.onload = () => {
+        let { width, height } = img
+        if (width > maxDim || height > maxDim) {
+          if (width > height) { height = Math.round((height * maxDim) / width); width = maxDim }
+          else { width = Math.round((width * maxDim) / height); height = maxDim }
+        }
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+        resolve(canvas.toDataURL('image/jpeg', quality))
+      }
+      img.src = reader.result
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
 const KINDS = ['Card', 'Strategy', 'Party', 'Dice', 'Dominoes', 'Abstract', 'Family', 'Word Game']
 const BLANK = {
   name: '', kind: 'Card', time: 20, minP: 2, maxP: 4,
@@ -26,9 +56,27 @@ export default function GameForm({ mode = 'add', initial, onSubmitCore, onDone, 
   const [f, setF] = useState(() => fromGame(initial))
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState('')
+  const [photoBusy, setPhotoBusy] = useState(false)
+  const [photoErr, setPhotoErr] = useState('')
   const set = (k) => (v) => setF((s) => ({ ...s, [k]: v }))
 
-  const canSave = f.name.trim().length > 0 && !saving
+  const canSave = f.name.trim().length > 0 && !saving && !photoBusy
+  const isDataUrl = f.image.startsWith('data:')
+
+  async function handlePhoto(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setPhotoErr('')
+    setPhotoBusy(true)
+    try {
+      set('image')(await resizePhoto(file))
+    } catch {
+      setPhotoErr('Couldn’t use that photo — try a different one.')
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
 
   function core() {
     const name = f.name.trim()
@@ -116,10 +164,23 @@ export default function GameForm({ mode = 'add', initial, onSubmitCore, onDone, 
         ]} />
       </div>
       <div className="field">
-        <label htmlFor="gf-image">Box image URL (optional)</label>
-        <input id="gf-image" type="text" placeholder="/covers/catan.jpg or a web link"
-          value={f.image} onChange={(e) => set('image')(e.target.value)} />
-        <span className="hint">Leave blank for a colored box. Real box art auto-fills from BoardGameGeek later.</span>
+        <label>Box art (optional)</label>
+        <div className="cover-upload">
+          {f.image && <img className="cover-thumb" src={f.image} alt="" />}
+          <label className="btn ghost file-btn">
+            {photoBusy ? 'Processing…' : f.image ? 'Change photo' : '📷 Upload a photo'}
+            <input type="file" accept="image/*" onChange={handlePhoto} disabled={photoBusy} hidden />
+          </label>
+          {f.image && (
+            <button type="button" className="btn ghost" onClick={() => set('image')('')}>Remove</button>
+          )}
+        </div>
+        {photoErr && <span className="hint warn">{photoErr}</span>}
+        {!isDataUrl && (
+          <input type="text" style={{ marginTop: 8 }} placeholder="…or paste an image link"
+            value={f.image} onChange={(e) => set('image')(e.target.value)} />
+        )}
+        <span className="hint">Photos are resized automatically. Real box art auto-fills from BoardGameGeek later.</span>
       </div>
 
       <div className="actions">

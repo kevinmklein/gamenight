@@ -81,10 +81,11 @@ export function tally(ballot = [], votes = []) {
 }
 
 // Tiebreak helper: Captain of the Night rotates weekly among the people who voted.
-export function captainFor(names = []) {
+// `weekOffset` lets callers preview future rotations (e.g. "next up: …").
+export function captainFor(names = [], weekOffset = 0) {
   if (!names.length) return null
   const sorted = [...names].sort()
-  const week = Math.floor(Date.now() / (7 * 86400000))
+  const week = Math.floor(Date.now() / (7 * 86400000)) + weekOffset
   return sorted[week % sorted.length]
 }
 

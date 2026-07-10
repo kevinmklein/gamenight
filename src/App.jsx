@@ -6,6 +6,7 @@ import AddGame from './components/AddGame.jsx'
 import Stats from './components/Stats.jsx'
 import GameNight from './components/GameNight.jsx'
 import Join from './components/Join.jsx'
+import PullToRefresh from './components/PullToRefresh.jsx'
 
 // Tiny hash router. `#/join/CODE` opens the voter view (shared link/QR target);
 // everything else is the normal tabbed app.
@@ -56,15 +57,14 @@ export default function App() {
           <img className="brand-logo" src="/brand/logo.png" alt="Game Shelf" />
           <div className="sub">The Klein family collection · Thursday Game Night HQ</div>
         </div>
-        {!joining && (
-          <nav className="tabs" role="tablist">
-            {tabs.map(([id, label]) => (
-              <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)}>
-                {label}
-              </button>
-            ))}
-          </nav>
-        )}
+        <nav className="tabs" role="tablist">
+          {tabs.map(([id, label]) => (
+            <button key={id} role="tab" aria-selected={!joining && tab === id}
+              onClick={() => { if (joining) window.location.hash = ''; setTab(id) }}>
+              {label}
+            </button>
+          ))}
+        </nav>
       </header>
 
       <div className="wrap">
@@ -73,7 +73,9 @@ export default function App() {
               : <section className="tab"><div className="soon">Connecting…</div></section>
         ) : (
           <>
-            {tab === 'shelf' && <Shelf games={games} onAdd={() => setTab('add')} />}
+            {tab === 'shelf' && (
+              <PullToRefresh><Shelf games={games} onAdd={() => setTab('add')} /></PullToRefresh>
+            )}
             {tab === 'add' && <AddGame onDone={() => setTab('shelf')} />}
             {tab === 'night' && <GameNight games={games} uid={uid} />}
             {tab === 'stats' && <Stats games={games} plays={plays} />}

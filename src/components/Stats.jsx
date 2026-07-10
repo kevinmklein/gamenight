@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { logPlay, playedDaysAgo, agoLabel, hasFirebase } from '../lib/catalog.js'
-import { FAMILY } from '../lib/family.js'
+import { FAMILY, colorFor } from '../lib/family.js'
+import { captainFor } from '../lib/night.js'
+import { Avatar } from './gameNightBits.jsx'
 
 const todayISO = () => new Date().toISOString().slice(0, 10)
 
@@ -160,6 +162,8 @@ function Dashboard({ games, plays }) {
 
   const maxWins = s.winRows[0]?.[1] || 1
   const maxKind = s.kindRows[0]?.[1] || 1
+  const captain = useMemo(() => captainFor(FAMILY), [])
+  const nextCaptain = useMemo(() => captainFor(FAMILY, 1), [])
 
   return (
     <>
@@ -177,6 +181,24 @@ function Dashboard({ games, plays }) {
           <div className="lbl">Most played{s.mostPlayed ? ` · ${s.mostPlayed[1]}×` : ''}</div>
         </div>
       </div>
+
+      {captain && (
+        <div className="panel">
+          <div className="eyebrow">Tie-break power</div>
+          <h3 className="stat-h">🧢 Captain of the Night</h3>
+          <p className="hint" style={{ marginTop: 0 }}>
+            Rotates weekly through the family, alphabetically — when Game Time’s top two
+            picks are a photo finish, the Captain’s call breaks the tie.
+          </p>
+          <div className="captain-row">
+            <Avatar color={colorFor(captain)} size={40} />
+            <div>
+              <div className="cap-name">{captain}</div>
+              <div className="cap-next">Next up: {nextCaptain}</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {s.kindRows.length > 0 && (
         <div className="panel">

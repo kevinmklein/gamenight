@@ -55,6 +55,27 @@ now filters on it via a new `seatsPlayers(g, n)` helper in `night.js` (moved fro
 which now imports it — same seat-count logic, one definition), and `constraintPills()` shows a
 "👥 N playing" pill. Verified end-to-end in the browser as both host and voter.
 
+2026-07-09 second Game Time/Shelf pass: five more fixes/features. (1) The host's Share screen
+(`GameNight.jsx`) now has a **"Cast my vote →"** button that jumps straight into `VoteFlow`,
+so the host doesn't have to detour through the lobby just to vote themselves. (2) Fixed a real
+dead end: `App.jsx` used to hide the tab nav entirely on the `#/join/CODE` voter route, so a
+voter who'd just submitted had no way back into the app. The nav now **always renders**; tapping
+a tab while on a join link clears the hash (`window.location.hash = ''`) and switches tabs in
+one click. (3) Added **pull-to-refresh** on the Shelf tab: new `src/components/PullToRefresh.jsx`
+(touch-drag while `scrollTop` is 0 triggers `window.location.reload()`) wraps `<Shelf>` in
+`App.jsx` — mainly for standalone/PWA mode, which has no native browser pull-to-refresh chrome.
+(4) **Photo upload for box art** (`GameForm.jsx`): a file input resizes + compresses the chosen
+photo client-side (canvas, max 700px edge, JPEG q=0.82) into a data URL stored directly in the
+game's existing `image` field — comfortably under Firestore's 1MiB doc limit, so no Firebase
+Storage product/rules were needed. The old "paste a URL" text field is kept as a fallback
+(hidden once a photo's been uploaded, since editing a data-URL string isn't useful) with a
+thumbnail preview + Remove button. (5) **Captain of the Night is now visible**: it was computed
+in `night.js`'s `captainFor()` but only ever shown inline in `RevealResults`' tiebreak note.
+`captainFor` gained an optional `weekOffset` param; Play Stats now has a small panel showing
+this week's captain (computed over the full `FAMILY` roster, not just tonight's voters) plus
+"Next up". Verified end-to-end in the browser (including simulating a file upload and a
+touch pull-gesture via injected DOM events).
+
 Security note: the Firebase web API key is public by design (it ships in the client bundle);
 it was once committed in git history and flagged by GitHub. It's now **restricted in Google
 Cloud** to the site's referrers, so the alert is dismissible. Never paste the key value into
@@ -261,8 +282,8 @@ Known gaps / follow-ups surfaced while building Game Night:
 3. **Stats:** edit/remove a logged play (needs `lastPlayed` recompute); per-game "log a play"
    shortcut from the Shelf detail modal.
 4. **BGG auto-fill** once the token lands.
-5. Verified in cloud mode — left a few throwaway test sessions (`CROW-*`, `LYNX-*`, `OWL-748`)
-   in the `sessions` collection; harmless (random codes, not shown anywhere), clear anytime.
+5. Verified in cloud mode — left a few throwaway test sessions (`CROW-*`, `LYNX-*`, `OWL-748`,
+   `HARE-849`) in the `sessions` collection; harmless (random codes, not shown anywhere), clear anytime.
    Better: set a Firestore **TTL policy** on `sessions` keyed to `createdAt` so old rooms
    self-delete (also shrinks the room-code collision window).
 6. Optional: draft a "add ~100 games fast" bulk-intake workflow.
