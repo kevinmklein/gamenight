@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { captainFor } from '../lib/night.js'
+import { captainFor, constraintPills } from '../lib/night.js'
 import { colorFor, FAMILY } from '../lib/family.js'
-import { FALLBACK_COVER } from '../lib/catalog.js'
+import { FALLBACK_COVER, playedDaysAgo, agoLabel, locLabel, attLabel } from '../lib/catalog.js'
 
 export function Meeple({ fill = '#fff', size = 20, className }) {
   return (
@@ -117,6 +117,133 @@ export function BallotPicker({ ballot, value, onChange, onSubmit, submitLabel, o
         {onBack && <button className="btn ghost" onClick={onBack}>{backLabel || '← Back'}</button>}
         {value.length < 1 && <span className="hint">Pick at least one.</span>}
       </div>
+    </>
+  )
+}
+
+// A read-only ballot list — tap a game to pop open its details. Shared by the
+// "while you wait" panel and the lobby, for both the host and voters.
+export function BallotBrowseList({ ballot, onOpen }) {
+  return (
+    <div className="ballot">
+      {ballot.map((g) => {
+        const c = g.cover || FALLBACK_COVER
+        return (
+          <button type="button" className="bcard" key={g.id} onClick={() => onOpen(g)}>
+            <span className="strip" style={{ background: `linear-gradient(90deg, ${c.c1}, ${c.c2})` }} />
+            <span className="bin">
+              <span className="bn">{g.name}</span>
+              <span className="bmeta tnum">
+                {g.time ? `${g.time}m` : ''}{g.players ? ` · ${g.players}` : ''} · {g.kind}
+              </span>
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// Read-only popup with a ballot game's details — no editing, just a closer look
+// while people wait for votes to come in.
+export function GameInfoModal({ g, onClose }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  const cover = g.cover || FALLBACK_COVER
+  const heroStyle = g.image
+    ? { backgroundImage: `url(${g.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : { background: `linear-gradient(150deg, ${cover.c1}, ${cover.c2})` }
+  const spec = (k, v) => (v ? <div className="spec"><div className="k">{k}</div><div className="v">{v}</div></div> : null)
+  const d = playedDaysAgo(g)
+
+  return (
+    <div className="scrim" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="modal" role="dialog" aria-modal="true" aria-label={g.name}>
+        <div className={`hero${g.image ? ' hasimg' : ''}`} style={heroStyle}>
+          <button className="x" onClick={onClose} aria-label="Close">✕</button>
+          <div className="kind">{g.kind || 'Game'}</div>
+          <h3>{g.name}</h3>
+        </div>
+        <div className="body">
+          <div className="specs">
+            {spec('Play time', g.time ? `${g.time} min` : null)}
+            {spec('Players', g.players)}
+            {spec('Where', locLabel(g.loc))}
+            {spec('Attention', attLabel(g.att))}
+          </div>
+          <div className="played">
+            {d == null
+              ? 'Never played yet — a fresh face on the shelf.'
+              : <>Last played <b>{agoLabel(d)}</b></>}
+            {g.plays ? <> · played <b className="tnum">{g.plays}×</b> all-time</> : null}
+          </div>
+          <div className="modal-foot" style={{ justifyContent: 'flex-end' }}>
+            <button className="btn ghost" onClick={onClose}>Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// The lobby: live vote count + who's voted + a browsable ballot, shared by the
+// host (full controls) and voters (read-only + their own vote button) so
+// everyone watching the table sees the same thing.
+export function Lobby({
+  code, c, ballot, votes, isHost, myVote, onShare, onVote, onReveal, onReset, onBack,
+}) {
+  const [openGame, setOpenGame] = useState(null)
+  const canReveal = votes.length >= 1
+  return (
+    <>
+      <div className="panel">
+        <div className="lobby-head">
+          <div>
+            <div className="rc-lbl">Table {code}</div>
+            <div className="lobby-count">{votes.length} vote{votes.length === 1 ? '' : 's'} in</div>
+          </div>
+          {isHost && <button className="btn ghost" onClick={onShare}>Show link</button>}
+        </div>
+        <div className="constraint-summary" style={{ marginTop: 8 }}>
+          {constraintPills(c).map((t) => <span className="cpill" key={t}>{t}</span>)}
+          <span className="cpill">🎲 {ballot.length} on the ballot</span>
+        </div>
+        {votes.length === 0 ? (
+          <p className="hint" style={{ marginTop: 14 }}>
+            Waiting for the first vote…{isHost ? ' share the link above.' : ''}
+          </p>
+        ) : (
+          <div className="join-list">
+            {votes.map((v) => (
+              <div className="join-row" key={v.id}>
+                <Avatar color={v.color} size={30} />
+                <div className="jn">{v.name}</div>
+                <span className="jstat voted">Voted ✓</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="panel">
+        <div className="eyebrow">Browse while you wait</div>
+        <h3 className="stat-h">On the table tonight</h3>
+        <p className="hint" style={{ marginTop: 0 }}>Tap a game for more details.</p>
+        <BallotBrowseList ballot={ballot} onOpen={setOpenGame} />
+      </div>
+      <div className="actions">
+        {isHost && (
+          <button className="btn brass" disabled={!canReveal} onClick={onReveal}>Close voting & reveal →</button>
+        )}
+        <button className="btn ghost" onClick={onVote}>{myVote ? 'Edit my vote' : 'Cast my vote'}</button>
+        {isHost && <button className="btn ghost" onClick={onReset}>Start over</button>}
+        {!isHost && onBack && <button className="btn ghost" onClick={onBack}>← Back</button>}
+        {isHost && !canReveal && <span className="hint">Need at least one vote in.</span>}
+      </div>
+      {openGame && <GameInfoModal g={openGame} onClose={() => setOpenGame(null)} />}
     </>
   )
 }

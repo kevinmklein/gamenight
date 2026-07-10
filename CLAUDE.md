@@ -39,6 +39,22 @@ against Typical Play Time, and removed the Add-a-Game name field's `autoFocus` (
 iOS keyboard on tab switch). Added a **Word Game** kind (Scrabble + Boggle reclassified in
 Firestore) and a "Game Types Played" bar chart on Stats, grouped by kind from the play log.
 
+2026-07-09 Game Time UX pass: after voting, voters no longer stare at a dead end. Added a
+**shared `Lobby` component** (`gameNightBits.jsx`) used by both the host (`GameNight.jsx`,
+full controls) and voters (`Join.jsx`, read-only + their own vote button) — everyone now sees
+the same live vote count + who's-voted list. Voters get a **"Go to lobby →"** button next to
+"Change my vote"; the host's existing Lobby now also gets the browsable ballot (previously
+host-only ballot count pill, no browsing). Added **`BallotBrowseList` + `GameInfoModal`**
+(`gameNightBits.jsx`) — tapping any ballot game (in "While you wait" or the Lobby) pops a
+read-only detail card (cover art, time/players/where/attention, last-played) reusing
+`locLabel`/`attLabel` (moved to `catalog.js` so Shelf and Game Night share them) — this will
+get much more useful once BGG descriptions land. Ballot snapshots (`night.js` `snapshot()`)
+now also carry `image` so real box art shows up in the popup, not just the gradient strip.
+**Set the Table gained a player-count constraint** (`c.players`, Seg of 2–8+/Any) — `eligible()`
+now filters on it via a new `seatsPlayers(g, n)` helper in `night.js` (moved from `Shelf.jsx`,
+which now imports it — same seat-count logic, one definition), and `constraintPills()` shows a
+"👥 N playing" pill. Verified end-to-end in the browser as both host and voter.
+
 Security note: the Firebase web API key is public by design (it ships in the client bundle);
 it was once committed in git history and flagged by GitHub. It's now **restricted in Google
 Cloud** to the site's referrers, so the alert is dismissible. Never paste the key value into
@@ -118,8 +134,8 @@ manifest icons, transparent for favicons).
 - **Storage: Firestore from the start** (see Architecture).
 
 ## The Voting Engine (rules to preserve)
-1. **Set the Table** — host picks hard constraints (max time, couch/table, focus). Produces
-   the "Eligible Tonight" set. Non-negotiable gate.
+1. **Set the Table** — host picks hard constraints (player count, max time, couch/table,
+   focus). Produces the "Eligible Tonight" set. Non-negotiable gate.
 2. **Smart shortlist / ballot** — ~8 games, deliberately mixed: some favorites, some
    dusty/unplayed, variety of kinds. Stops the ballot being all short/familiar games.
 3. **Ranked approval vote** — each player picks top 3, ranked. Borda points **3 / 2 / 1**.
@@ -149,23 +165,35 @@ First four are the hard "rule things out" constraints; the rest are soft prefere
     silent `signInAnonymously`. `hasFirebase` = are env vars present.
   - `src/lib/catalog.js` — the data layer. ONE interface, TWO backends: **Firestore when
     configured, localStorage fallback otherwise** (auto-switch). `subscribeGames`, `addGame`,
-    `deleteGame`, `coverFor(name)` (gradient cover from name hash).
+    `deleteGame`, `coverFor(name)` (gradient cover from name hash); also `locLabel`/`attLabel`
+    (human labels for a game's location/attention fields — shared by Shelf's detail modal and
+    Game Night's `GameInfoModal`).
   - `src/App.jsx` — header (logo + tagline, no theme toggle or connectivity badge — see
     Locked Decisions), tabs, auth-then-subscribe.
   - `src/components/Shelf.jsx` — browse/search/detail-modal.
   - `src/components/AddGame.jsx` — manual intake form.
   - `src/components/Stats.jsx` — log-a-night form + core-stats dashboard.
   - `src/lib/night.js` — pure voting-engine logic (`eligible`, `buildBallot`, `tally`,
-    `captainFor`, `makeRoomCode`, `joinUrl`). No Firestore/React.
+    `captainFor`, `makeRoomCode`, `joinUrl`, `constraintPills`, `seatsPlayers`). No
+    Firestore/React. `seatsPlayers(g, n)` is the single definition of "does this game seat n
+    players" — `Shelf.jsx`'s player filter imports it too, don't redefine locally.
   - `src/lib/family.js` — single source of truth for the family roster + player colors
     (`FAMILY`, `colorFor`). Used by Game Night UI and Stats.
   - `src/components/GameNight.jsx` — host flow (Set the Table → Share → Lobby → Reveal).
     On open it re-rolls the room code if `sessionExists()` (codes recycle; reusing a live
-    one would resurrect the old session's votes subcollection in the new lobby).
-  - `src/components/Join.jsx` — the `#/join/CODE` voter view.
-  - `src/components/gameNightBits.jsx` — shared UI (`BallotPicker`, `VoteFlow`,
-    `IdentityPicker`, `RevealResults`, `Avatar`, `Meeple`, `Seg`). `Seg` + `Meeple` live
-    ONLY here — GameNight, GameForm, and App import them; don't re-define locally.
+    one would resurrect the old session's votes subcollection in the new lobby). Renders the
+    shared `Lobby` with `isHost`.
+  - `src/components/Join.jsx` — the `#/join/CODE` voter view. After voting, a local `view`
+    state (`wait` | `lobby`) toggles between the short "your vote's in" summary and the
+    shared `Lobby` (no `isHost`, so no reveal/start-over/show-link — just the live vote count,
+    the browsable ballot, and their own "Edit my vote").
+  - `src/components/gameNightBits.jsx` — shared UI: `BallotPicker`, `VoteFlow`,
+    `IdentityPicker`, `RevealResults`, `Avatar`, `Meeple`, `Seg`, `Lobby`, `BallotBrowseList`,
+    `GameInfoModal`. `Seg` + `Meeple` live ONLY here — GameNight, GameForm, and App import
+    them; don't re-define locally. `Lobby` is host/voter-agnostic (`isHost` prop switches the
+    controls) — it's the one place the live vote-count/who's-voted UI is defined, used by both
+    `GameNight.jsx` and `Join.jsx`. `BallotBrowseList` + `GameInfoModal` are the tap-a-game-for-
+    details popup, used in the Lobby and in Join's "while you wait" panel.
   - `catalog.js` also exports: `subscribePlays`, `logPlay(play)`, `playedDaysAgo(game)`
     (live days-since; falls back to legacy static `last`); `agoLabel(d)` (human label,
     handles null = "never played"); `FALLBACK_COVER` (the one gradient fallback — never
@@ -187,7 +215,8 @@ First four are the hard "rule things out" constraints; the rest are soft prefere
 - **Play doc shape** (`plays` collection, implemented): `gameId, gameName, players[], winner,
   minutes, playedAt (millis), createdAt`. `winner` is null for co-op / no-winner nights.
 - **Session doc shape** (`sessions/{code}`, implemented): `phase ('voting'|'revealed'),
-  constraints{maxTime,loc,att}, ballot[frozen game snapshots], host (uid), createdAt`, with a
+  constraints{players,maxTime,loc,att}, ballot[frozen game snapshots incl. image], host (uid),
+  createdAt`, with a
   `votes/{voterId}` subcollection: `{name, color, ranking:[gameId×3], updatedAt}`. voterId =
   `getUid()`. The `/{document=**}` rule already covers sessions + the votes subcollection.
 - Planned collections: `players` (persistent profiles).

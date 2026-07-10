@@ -14,9 +14,18 @@ function snapshot(g) {
   return {
     id: g.id, name: g.name, kind: g.kind, time: g.time || null,
     players: g.players || '', loc: g.loc || 'either', att: g.att || 'semi',
-    cover: g.cover || FALLBACK_COVER,
+    cover: g.cover || FALLBACK_COVER, image: g.image || null,
     plays: g.plays || 0, last: g.last ?? null, lastPlayed: g.lastPlayed ?? null,
   }
+}
+
+// Does a game seat exactly `n` players? Lenient when a bound is missing.
+// Shared with the Shelf's player-count filter.
+export function seatsPlayers(g, n) {
+  const min = g.minPlayers, max = g.maxPlayers
+  if (min != null && n < min) return false
+  if (max != null && n > max) return false
+  return true
 }
 
 // Hard "rule things out" gate → the set eligible tonight.
@@ -27,6 +36,7 @@ export function eligible(games, c = {}) {
     if (c.loc === 'table' && g.loc === 'couch') return false
     if (c.att === 'background' && g.att !== 'background') return false
     if (c.att === 'focus' && g.att === 'background') return false
+    if (c.players && !seatsPlayers(g, c.players)) return false
     return true
   })
 }
@@ -91,6 +101,7 @@ export function joinUrl(code) {
 
 export function constraintPills(c = {}) {
   return [
+    c.players ? `👥 ${c.players}${c.players >= 8 ? '+' : ''} playing` : '👥 Any # playing',
     c.maxTime ? `⏱ Under ${c.maxTime}m` : '⏱ Any length',
     c.loc === 'couch' ? '🛋 Couch' : c.loc === 'table' ? '🪑 Table' : '🛋🪑 Either',
     c.att === 'background' ? '👀 Half-watch' : c.att === 'focus' ? '🧠 All-in' : '🎯 Any focus',

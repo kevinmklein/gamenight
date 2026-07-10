@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
-import { subscribeSession, subscribeVotes, submitVote, FALLBACK_COVER } from '../lib/catalog.js'
+import { subscribeSession, subscribeVotes, submitVote } from '../lib/catalog.js'
 import { tally, constraintPills } from '../lib/night.js'
-import { VoteFlow, RevealResults, Avatar } from './gameNightBits.jsx'
+import { VoteFlow, RevealResults, Avatar, Lobby, BallotBrowseList, GameInfoModal } from './gameNightBits.jsx'
 
 export default function Join({ code, uid }) {
   const [session, setSession] = useState(undefined)   // undefined = loading, null = not found
   const [votes, setVotes] = useState([])
   const [editing, setEditing] = useState(false)
+  const [view, setView] = useState('wait')             // wait | lobby
+  const [openGame, setOpenGame] = useState(null)
 
   useEffect(() => {
     const u1 = subscribeSession(code, setSession)
@@ -39,6 +41,13 @@ export default function Join({ code, uid }) {
         <p className="footnote">The host closed voting. See you at the table!</p>
       </>
     )
+  } else if (myVote && !editing && view === 'lobby') {
+    body = (
+      <Lobby
+        code={code} c={session.constraints || {}} ballot={session.ballot} votes={votes}
+        myVote={myVote} onVote={() => setEditing(true)} onBack={() => setView('wait')}
+      />
+    )
   } else if (myVote && !editing) {
     body = (
       <>
@@ -48,29 +57,18 @@ export default function Join({ code, uid }) {
           <p>When everyone’s voted, the host reveals tonight’s pick. <b>This screen updates on
             its own</b> — keep it open and the winner shows up right here.</p>
           <div className="join-tally">{votes.length} vote{votes.length === 1 ? '' : 's'} in so far</div>
-          <button className="btn ghost" onClick={() => setEditing(true)}>Change my vote</button>
+          <div className="actions" style={{ justifyContent: 'center', marginTop: 10 }}>
+            <button className="btn ghost" onClick={() => setEditing(true)}>Change my vote</button>
+            <button className="btn ghost" onClick={() => setView('lobby')}>Go to lobby →</button>
+          </div>
         </div>
         <div className="panel">
           <div className="eyebrow">While you wait</div>
           <h3 className="stat-h">On the table tonight</h3>
-          <p className="hint" style={{ marginTop: 0 }}>The {session.ballot.length} games in the running:</p>
-          <div className="ballot">
-            {session.ballot.map((g) => {
-              const c = g.cover || FALLBACK_COVER
-              return (
-                <div className="bcard readonly" key={g.id}>
-                  <span className="strip" style={{ background: `linear-gradient(90deg, ${c.c1}, ${c.c2})` }} />
-                  <span className="bin">
-                    <span className="bn">{g.name}</span>
-                    <span className="bmeta tnum">
-                      {g.time ? `${g.time}m` : ''}{g.players ? ` · ${g.players}` : ''} · {g.kind}
-                    </span>
-                  </span>
-                </div>
-              )
-            })}
-          </div>
+          <p className="hint" style={{ marginTop: 0 }}>Tap a game for more details.</p>
+          <BallotBrowseList ballot={session.ballot} onOpen={setOpenGame} />
         </div>
+        {openGame && <GameInfoModal g={openGame} onClose={() => setOpenGame(null)} />}
       </>
     )
   } else {

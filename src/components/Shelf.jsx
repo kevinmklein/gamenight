@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  deleteGame, updateGame, playedDaysAgo, agoLabel, coverImageFor, FALLBACK_COVER,
+  deleteGame, updateGame, playedDaysAgo, agoLabel, coverImageFor, locLabel, attLabel, FALLBACK_COVER,
 } from '../lib/catalog.js'
+import { seatsPlayers } from '../lib/night.js'
 import GameForm from './GameForm.jsx'
 
 const locGlyph = (l) => (l === 'couch' ? '🛋' : l === 'table' ? '🪑' : '🛋🪑')
-const locLabel = (l) => (l === 'couch' ? 'Couch-friendly' : l === 'table' ? 'Needs a table' : 'Table or couch')
-const attLabel = (a) =>
-  a === 'background' ? 'Background-OK' : a === 'focus' ? 'Needs focus' : 'Light focus'
 
 function GameBox({ g, onOpen }) {
   const cover = g.cover || FALLBACK_COVER
@@ -127,14 +125,6 @@ function GameDetail({ g, onClose }) {
 }
 
 const NO_FILTERS = { players: '', loc: '', time: '', kind: '' }
-
-// Does a game seat exactly `n` players? Lenient when a bound is missing.
-function seatsPlayers(g, n) {
-  const min = g.minPlayers, max = g.maxPlayers
-  if (min != null && n < min) return false
-  if (max != null && n > max) return false
-  return true
-}
 
 function FilterBar({ f, setF, kinds, active, onClear }) {
   const set = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.value }))

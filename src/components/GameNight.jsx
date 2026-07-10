@@ -6,7 +6,7 @@ import {
 import {
   createSession, sessionExists, subscribeSession, subscribeVotes, submitVote, revealSession, logPlay,
 } from '../lib/catalog.js'
-import { BallotPicker, VoteFlow, RevealResults, Avatar, Seg } from './gameNightBits.jsx'
+import { VoteFlow, RevealResults, Lobby, Seg } from './gameNightBits.jsx'
 
 const STEPS = ['Set the Table', 'Everyone Votes', 'Tonight We Play']
 
@@ -27,7 +27,7 @@ export default function GameNight({ games, uid }) {
   const [session, setSession] = useState(null)
   const [votes, setVotes] = useState([])
   const [step, setStep] = useState('setup')       // setup | share | lobby | vote
-  const [c, setC] = useState({ maxTime: null, loc: null, att: null })
+  const [c, setC] = useState({ players: null, maxTime: null, loc: null, att: null })
   const [busy, setBusy] = useState(false)
   const [logged, setLogged] = useState(false)
 
@@ -61,7 +61,7 @@ export default function GameNight({ games, uid }) {
   async function reveal() { await revealSession(code) }
   function reset() {
     setCode(null); setSession(null); setVotes([]); setStep('setup'); setLogged(false)
-    setC({ maxTime: null, loc: null, att: null })
+    setC({ players: null, maxTime: null, loc: null, att: null })
   }
 
   async function logNight() {
@@ -110,7 +110,7 @@ export default function GameNight({ games, uid }) {
         <Share code={code} c={c} ballot={session?.ballot || []}
           onLobby={() => setStep('lobby')} onBack={reset} />
       ) : (
-        <Lobby code={code} c={c} session={session} votes={votes}
+        <Lobby code={code} c={c} ballot={session?.ballot || []} votes={votes} isHost
           onShare={() => setStep('share')} onVote={() => setStep('vote')}
           myVote={myVote} onReveal={reveal} onReset={reset} />
       )}
@@ -130,6 +130,12 @@ function SetTable({ c, setC, count, games, onOpen, busy }) {
         <p style={{ margin: '0 0 6px', fontSize: 14, color: 'var(--ink-2)' }}>
           You’re the host. Set the ground rules — everyone else just votes on what’s left.
         </p>
+        <div className="field">
+          <label>How many are playing tonight?</label>
+          <Seg value={c.players} onChange={set('players')} options={[
+            [2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6'], [7, '7'], [8, '8+'], [null, 'Any'],
+          ]} />
+        </div>
         <div className="field">
           <label>How long have we got?</label>
           <Seg value={c.maxTime} onChange={set('maxTime')} options={[
@@ -195,43 +201,3 @@ function Share({ code, c, onLobby, onBack }) {
   )
 }
 
-function Lobby({ code, c, session, votes, onShare, onVote, myVote, onReveal, onReset }) {
-  const ballotN = session?.ballot?.length || 0
-  const canReveal = votes.length >= 1
-  return (
-    <>
-      <div className="panel">
-        <div className="lobby-head">
-          <div>
-            <div className="rc-lbl">Table {code}</div>
-            <div className="lobby-count">{votes.length} vote{votes.length === 1 ? '' : 's'} in</div>
-          </div>
-          <button className="btn ghost" onClick={onShare}>Show link</button>
-        </div>
-        <div className="constraint-summary" style={{ marginTop: 8 }}>
-          {constraintPills(c).map((t) => <span className="cpill" key={t}>{t}</span>)}
-          <span className="cpill">🎲 {ballotN} on the ballot</span>
-        </div>
-        {votes.length === 0 ? (
-          <p className="hint" style={{ marginTop: 14 }}>Waiting for the first vote… share the link above.</p>
-        ) : (
-          <div className="join-list">
-            {votes.map((v) => (
-              <div className="join-row" key={v.id}>
-                <Avatar color={v.color} size={30} />
-                <div className="jn">{v.name}</div>
-                <span className="jstat voted">Voted ✓</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      <div className="actions">
-        <button className="btn brass" disabled={!canReveal} onClick={onReveal}>Close voting & reveal →</button>
-        <button className="btn ghost" onClick={onVote}>{myVote ? 'Edit my vote' : 'Cast my vote'}</button>
-        <button className="btn ghost" onClick={onReset}>Start over</button>
-        {!canReveal && <span className="hint">Need at least one vote in.</span>}
-      </div>
-    </>
-  )
-}

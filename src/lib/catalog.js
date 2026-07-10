@@ -117,6 +117,15 @@ export function agoLabel(d) {
     : d < 30 ? `${d} days ago` : d < 60 ? 'about a month ago' : `${Math.round(d / 30)} months ago`
 }
 
+// Human labels for a game's location/attention fields — shared by the Shelf detail
+// modal and the Game Night ballot's read-only info popup.
+export function locLabel(l) {
+  return l === 'couch' ? 'Couch-friendly' : l === 'table' ? 'Needs a table' : 'Table or couch'
+}
+export function attLabel(a) {
+  return a === 'background' ? 'Background-OK' : a === 'focus' ? 'Needs focus' : 'Light focus'
+}
+
 function lsReadPlays() {
   try { return JSON.parse(localStorage.getItem(PLAYS_KEY)) || [] } catch { return [] }
 }
