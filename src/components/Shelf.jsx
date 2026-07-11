@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   deleteGame, updateGame, playedDaysAgo, agoLabel, coverImageFor, locLabel, attLabel,
-  complexityLabel, FALLBACK_COVER,
+  complexityLabel, minAgeLabel, FALLBACK_COVER,
 } from '../lib/catalog.js'
 import { seatsPlayers } from '../lib/night.js'
 import GameForm from './GameForm.jsx'
@@ -92,6 +92,7 @@ function GameDetail({ g, onClose }) {
             {spec('Players', g.players)}
             {spec('Best at', g.bestPlayers ? `${g.bestPlayers}${String(g.bestPlayers).endsWith('+') ? '' : ' players'}` : null)}
             {spec('Complexity', complexityLabel(g.weight))}
+            {spec('Min age', minAgeLabel(g.minAge))}
             {spec('Where', locLabel(g.loc))}
             {spec('Attention', attLabel(g.att))}
             {g.setup && (

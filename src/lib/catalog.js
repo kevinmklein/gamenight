@@ -144,6 +144,13 @@ export function complexityLabel(weight) {
   return `${word} · ${Number(weight).toFixed(1)}`
 }
 
+// Human label for BGG's minAge, e.g. "5+". Display-only (see CLAUDE.md — age never
+// gates anything for this family) — a null/0 minAge means BGG has no rating for it.
+export function minAgeLabel(minAge) {
+  const n = Number(minAge)
+  return minAge != null && minAge !== '' && !Number.isNaN(n) && n > 0 ? `${n}+` : null
+}
+
 function lsReadPlays() {
   try { return JSON.parse(localStorage.getItem(PLAYS_KEY)) || [] } catch { return [] }
 }

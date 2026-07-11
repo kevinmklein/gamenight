@@ -137,10 +137,10 @@ input.search:focus-visible{outline:3px solid var(--brass);outline-offset:2px;bor
 .modal .hero.hasimg::after{content:"";position:absolute;inset:0;background:
   linear-gradient(transparent 35%,rgba(0,0,0,.72)),
   radial-gradient(circle at top right,rgba(0,0,0,.45),transparent 60px)}
-.modal .hero.hasimg .x,.modal .hero.hasimg .kind,.modal .hero.hasimg h3{position:relative;z-index:1}
-.modal .hero .kind{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;opacity:.9}
-.modal .hero h3{font-size:28px;margin-top:4px;text-shadow:0 1px 4px rgba(0,0,0,.4)}
-.modal .x{position:absolute;top:10px;right:10px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);border:1.5px solid rgba(255,255,255,.35);color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:16px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.35);transition:background .15s ease,transform .15s ease}
+.modal .hero.hasimg .kind,.modal .hero.hasimg h3{position:relative;z-index:1}
+.modal .hero .kind{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;opacity:.9;padding-right:52px}
+.modal .hero h3{font-size:28px;margin-top:4px;text-shadow:0 1px 4px rgba(0,0,0,.4);padding-right:52px}
+.modal .x{position:absolute;top:10px;right:10px;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);border:1.5px solid rgba(255,255,255,.35);color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:16px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.35);transition:background .15s ease,transform .15s ease}
 .modal .x:hover{background:rgba(0,0,0,.75)}
 .modal .x:active{transform:scale(.92)}
 .modal .body{padding:20px 22px 22px}

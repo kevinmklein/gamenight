@@ -136,6 +136,22 @@ legible over any box art (it was nearly invisible on light covers like Balderdas
 darkening gradient only covers the bottom ~65%), plus a small top-right radial scrim behind it on
 image heroes. Shared by the Shelf detail modal, GameForm's edit hero, and `GameInfoModal`.
 
+2026-07-11 follow-up: two more fixes to the same close button + a new spec field, caught by Kevin
+using the app. (1) **Close button no longer overlaps the kind/title text.** Root cause was a
+pre-existing bug, not something introduced in the pass above: `.modal .hero.hasimg .x` (a
+higher-specificity selector meant to lift the `kind`/`h3` text above the `::after` darkening
+overlay via `z-index`) was also silently forcing the button's `position` from `absolute` back to
+`relative` whenever a game had real box art — pulling it into the flex flow right above the title
+instead of floating in the corner. Fixed by dropping `.x` from that selector and giving `.modal .x`
+its own `z-index:2` directly (so it stays absolutely positioned *and* above the overlay). Also gave
+`.kind`/`h3` `padding-right:52px` so long two-line titles reserve space and never render text under
+the button either. (2) **Min age added as a spec** in both detail overlays (Shelf's `GameDetail`
+and Game Night's `GameInfoModal`) — new `minAgeLabel(minAge)` helper in `catalog.js` (e.g. "12+",
+null if BGG has no rating). Display-only, sits between Complexity and Where — this does NOT
+contradict the "age never gates" rule under **The Family** below; it's surfaced so Kevin can spot
+which games skew young, not used to filter or exclude anything. `night.js`'s `snapshot()` now also
+freezes `minAge` onto ballot snapshots so it shows in Game Night's popup too.
+
 Also shipped in the same pass — **Game Time polish**: dropped "tonight" from the eligible-games note
 in Set the Table; added a "See the list ▾" toggle that expands to the actual eligible games via
 `BallotBrowseList` + `GameInfoModal` (same tap-for-details popup used in the Lobby), so hosts can
@@ -160,7 +176,10 @@ double-click (which truncates at the first `-`).
 | Sophia | Daughter, turns 13 wk of 2026-07-18 | Invents wacky Uno variants |
 Refer to them by name — **Sara** and **Sophia**, not "the twins". At 13 they can play anything the
 family owns; the family doesn't play mature-themed games at all, so **age never gates** — do NOT
-build a min-age / kid-friendly filter (BGG's `minAge` may stay on docs, just don't surface it).
+build a min-age / kid-friendly *filter* or exclusion rule. BGG's `minAge` IS shown as a display-only
+spec ("12+") in the Shelf and Game Night detail overlays (added 2026-07-11, Kevin's call) — it's
+informational (spotting games that skew young, e.g. sentimental ones the family's since outgrown),
+not a gate; nothing filters or excludes on it.
 Guests/extended family add a lightweight profile on the fly (planned: on the Game Night join screen).
 
 ## The Three Features

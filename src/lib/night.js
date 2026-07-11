@@ -17,7 +17,7 @@ function snapshot(g) {
     cover: g.cover || FALLBACK_COVER, image: g.image || null, bggImage: g.bggImage || null,
     plays: g.plays || 0, last: g.last ?? null, lastPlayed: g.lastPlayed ?? null,
     // BGG extras (present once synced/backfilled) — for the read-only info popup.
-    description: g.description || '', weight: g.weight ?? null,
+    description: g.description || '', weight: g.weight ?? null, minAge: g.minAge ?? null,
     bestPlayers: g.bestPlayers ?? null, recommendedPlayers: g.recommendedPlayers || [],
   }
 }

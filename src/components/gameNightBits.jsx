@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { captainFor, constraintPills } from '../lib/night.js'
 import { colorFor, FAMILY } from '../lib/family.js'
-import { FALLBACK_COVER, playedDaysAgo, agoLabel, locLabel, attLabel, complexityLabel } from '../lib/catalog.js'
+import { FALLBACK_COVER, playedDaysAgo, agoLabel, locLabel, attLabel, complexityLabel, minAgeLabel } from '../lib/catalog.js'
 
 export function Meeple({ fill = '#fff', size = 20, className }) {
   return (
@@ -175,6 +175,7 @@ export function GameInfoModal({ g, onClose }) {
             {spec('Players', g.players)}
             {spec('Best at', g.bestPlayers ? `${g.bestPlayers}${String(g.bestPlayers).endsWith('+') ? '' : ' players'}` : null)}
             {spec('Complexity', complexityLabel(g.weight))}
+            {spec('Min age', minAgeLabel(g.minAge))}
             {spec('Where', locLabel(g.loc))}
             {spec('Attention', attLabel(g.att))}
           </div>
