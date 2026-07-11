@@ -6,7 +6,7 @@ import {
 import {
   createSession, sessionExists, subscribeSession, subscribeVotes, submitVote, revealSession, logPlay,
 } from '../lib/catalog.js'
-import { VoteFlow, RevealResults, Lobby, Seg } from './gameNightBits.jsx'
+import { VoteFlow, RevealResults, Lobby, Seg, BallotBrowseList, GameInfoModal } from './gameNightBits.jsx'
 
 const STEPS = ['Set the Table', 'Everyone Votes', 'Tonight We Play']
 
@@ -38,7 +38,7 @@ export default function GameNight({ games, uid }) {
     return () => { u1(); u2() }
   }, [code])
 
-  const eligibleCount = useMemo(() => eligible(games, c).length, [games, c])
+  const eligibleGames = useMemo(() => eligible(games, c), [games, c])
   const myVote = votes.find((v) => v.id === uid)
   const revealed = session?.phase === 'revealed'
 
@@ -102,7 +102,7 @@ export default function GameNight({ games, uid }) {
           </div>
         </>
       ) : step === 'setup' ? (
-        <SetTable c={c} setC={setC} count={eligibleCount} games={games}
+        <SetTable c={c} setC={setC} eligibleGames={eligibleGames} games={games}
           onOpen={openTable} busy={busy} />
       ) : step === 'vote' ? (
         <VoteFlow ballot={session.ballot} existingVote={myVote} onSubmit={castVote} />
@@ -118,8 +118,11 @@ export default function GameNight({ games, uid }) {
   )
 }
 
-function SetTable({ c, setC, count, games, onOpen, busy }) {
+function SetTable({ c, setC, eligibleGames, games, onOpen, busy }) {
   const set = (k) => (v) => setC((s) => ({ ...s, [k]: v }))
+  const [showList, setShowList] = useState(false)
+  const [openGame, setOpenGame] = useState(null)
+  const count = eligibleGames.length
   if (!games.length) {
     return <div className="soon">Add a few games on the <b>Add a Game</b> tab first — Game Time
       votes on your real shelf.</div>
@@ -154,7 +157,20 @@ function SetTable({ c, setC, count, games, onOpen, busy }) {
             ['background', '👀 Keep it light'], ['focus', '🧠 We’re all-in'], [null, 'Doesn’t matter'],
           ]} />
         </div>
-        <div className="eligible-note">🎲 That leaves <b className="tnum">{count}</b> game{count === 1 ? '' : 's'} on the table tonight.</div>
+        <div className="eligible-note">
+          🎲 That leaves <b className="tnum">{count}</b> game{count === 1 ? '' : 's'} on the table.
+          {count > 0 && (
+            <button type="button" className="link-toggle" onClick={() => setShowList((v) => !v)}>
+              {showList ? 'Hide the list ▲' : 'See the list ▾'}
+            </button>
+          )}
+        </div>
+        {showList && count > 0 && (
+          <div style={{ marginTop: 12 }}>
+            <p className="hint" style={{ marginTop: 0 }}>Tap a game for more details.</p>
+            <BallotBrowseList ballot={eligibleGames} onOpen={setOpenGame} />
+          </div>
+        )}
       </div>
       <div className="actions">
         <button className="btn brass" disabled={count < 2 || busy} onClick={onOpen}>
@@ -162,6 +178,7 @@ function SetTable({ c, setC, count, games, onOpen, busy }) {
         </button>
         {count < 2 && <span className="hint">Loosen a rule — need at least 2 eligible games.</span>}
       </div>
+      {openGame && <GameInfoModal g={openGame} onClose={() => setOpenGame(null)} />}
     </>
   )
 }

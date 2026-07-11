@@ -40,6 +40,19 @@ const BLANK = {
   loc: 'either', att: 'semi', setup: 'quick', image: '', bgg: null,
 }
 
+// Curated box art lives in public/covers/ (see CLAUDE.md). The image field
+// doubles as "paste a full link" and "just the filename in covers/" — anything
+// that isn't already a URL/absolute path/data URL is assumed to be the latter.
+const COVERS_PREFIX = '/covers/'
+function stripCoversPrefix(v) {
+  return v && v.startsWith(COVERS_PREFIX) ? v.slice(COVERS_PREFIX.length) : v
+}
+function expandCoversPrefix(v) {
+  const t = v.trim()
+  if (!t) return ''
+  return /^(https?:|data:|\/)/i.test(t) ? t : COVERS_PREFIX + t
+}
+
 // Pull stored BGG fields off a game (so editing preserves them), or null if the
 // game was never linked to BoardGameGeek. Field list + thing-mapping live in
 // bgg.js (BGG_META_KEYS / bggMetaFromThing), shared with the backfill tool.
@@ -57,7 +70,7 @@ function fromGame(g) {
     name: g.name || '', kind: g.kind || 'Card',
     time: g.time ?? 20, minP: g.minPlayers ?? '', maxP: g.maxPlayers ?? '',
     loc: g.loc || 'either', att: g.att || 'semi', setup: g.setup || 'quick',
-    image: g.image || '', bgg: bggFromGame(g),
+    image: stripCoversPrefix(g.image || ''), bgg: bggFromGame(g),
   }
 }
 
@@ -75,7 +88,7 @@ export default function GameForm({ mode = 'add', initial, onSubmitCore, onDone, 
   const canSave = f.name.trim().length > 0 && !saving && !photoBusy
   const isDataUrl = f.image.startsWith('data:')
   const bggImg = f.bgg?.bggImage || null
-  const shownImg = f.image || bggImg // curated/uploaded art wins; BGG art is the fallback
+  const shownImg = (f.image ? expandCoversPrefix(f.image) : '') || bggImg // curated/uploaded art wins; BGG art is the fallback
 
   // Apply an auto-fill pick: overwrite the spec fields, stash the BGG metadata,
   // but deliberately leave `image` (curated art) alone.
@@ -117,7 +130,7 @@ export default function GameForm({ mode = 'add', initial, onSubmitCore, onDone, 
       players,
       loc: f.loc, att: f.att, setup: f.setup,
       cover: coverFor(name),
-      image: f.image.trim() || null,
+      image: expandCoversPrefix(f.image) || null,
       // Spread BGG-derived fields (incl. bggImage) when linked; never overwrites `image`.
       ...(f.bgg?.bggId ? f.bgg : {}),
     }
@@ -211,7 +224,8 @@ export default function GameForm({ mode = 'add', initial, onSubmitCore, onDone, 
         </div>
         {photoErr && <span className="hint warn">{photoErr}</span>}
         {!isDataUrl && (
-          <input type="text" style={{ marginTop: 8 }} placeholder="…or paste an image link"
+          <input type="text" style={{ marginTop: 8 }}
+            placeholder="…or paste an image link, or just a filename from public/covers/"
             value={f.image} onChange={(e) => set('image')(e.target.value)} />
         )}
         {f.image && bggImg

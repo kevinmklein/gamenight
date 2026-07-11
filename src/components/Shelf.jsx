@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   deleteGame, updateGame, playedDaysAgo, agoLabel, coverImageFor, locLabel, attLabel,
-  complexityBucket, complexityLabel, FALLBACK_COVER,
+  complexityLabel, FALLBACK_COVER,
 } from '../lib/catalog.js'
-import { seatsPlayers, playsBestAt, playsWellAt } from '../lib/night.js'
+import { seatsPlayers } from '../lib/night.js'
 import GameForm from './GameForm.jsx'
 
 const locGlyph = (l) => (l === 'couch' ? '🛋' : l === 'table' ? '🪑' : '🛋🪑')
@@ -128,7 +128,7 @@ function GameDetail({ g, onClose }) {
   )
 }
 
-const NO_FILTERS = { players: '', bestAt: false, loc: '', time: '', kind: '', weight: '' }
+const NO_FILTERS = { players: '', loc: '', time: '', kind: '' }
 
 function FilterBar({ f, setF, kinds, active, onClear }) {
   const set = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.value }))
@@ -136,19 +136,11 @@ function FilterBar({ f, setF, kinds, active, onClear }) {
     <div className="filterbar">
       <label className="filt">
         <span>Players</span>
-        <select value={f.players}
-          onChange={(e) => setF((s) => ({ ...s, players: e.target.value, bestAt: e.target.value ? s.bestAt : false }))}>
+        <select value={f.players} onChange={set('players')}>
           <option value="">Any</option>
           {[2, 3, 4, 5, 6, 7, 8].map((n) => <option key={n} value={n}>{n === 8 ? '8+' : n}</option>)}
         </select>
       </label>
-      {f.players && (
-        <label className="filt bestfit">
-          <input type="checkbox" checked={f.bestAt}
-            onChange={(e) => setF((s) => ({ ...s, bestAt: e.target.checked }))} />
-          <span>★ Plays well at {f.players}{Number(f.players) >= 8 ? '+' : ''}</span>
-        </label>
-      )}
       <label className="filt">
         <span>Where</span>
         <select value={f.loc} onChange={set('loc')}>
@@ -164,15 +156,6 @@ function FilterBar({ f, setF, kinds, active, onClear }) {
           <option value="15">Under 15m</option>
           <option value="30">Under 30m</option>
           <option value="60">Under 60m</option>
-        </select>
-      </label>
-      <label className="filt">
-        <span>Complexity</span>
-        <select value={f.weight} onChange={set('weight')}>
-          <option value="">Any</option>
-          <option value="light">Light</option>
-          <option value="medium">Medium</option>
-          <option value="heavy">Heavy</option>
         </select>
       </label>
       <label className="filt">
@@ -205,14 +188,9 @@ export default function Shelf({ games, onAdd }) {
     return games.filter((g) => {
       if (s && !g.name.toLowerCase().includes(s)) return false
       if (f.players && !seatsPlayers(g, Number(f.players))) return false
-      if (f.players && f.bestAt) {
-        const n = Number(f.players)
-        if (playsBestAt(g, n) !== true && playsWellAt(g, n) !== true) return false
-      }
       if (f.loc === 'couch' && g.loc === 'table') return false
       if (f.loc === 'table' && g.loc === 'couch') return false
       if (f.time && !(g.time && g.time <= Number(f.time))) return false
-      if (f.weight && complexityBucket(g.weight) !== f.weight) return false
       if (f.kind && g.kind !== f.kind) return false
       return true
     })

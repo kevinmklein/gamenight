@@ -134,12 +134,15 @@ input.search:focus-visible{outline:3px solid var(--brass);outline-offset:2px;bor
 @keyframes pop{from{transform:scale(.96);opacity:.4}to{transform:scale(1);opacity:1}}
 .modal .hero{padding:22px;color:#fff;position:relative}
 .modal .hero.hasimg{min-height:180px;display:flex;flex-direction:column;justify-content:flex-end}
-.modal .hero.hasimg::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 35%,rgba(0,0,0,.72))}
+.modal .hero.hasimg::after{content:"";position:absolute;inset:0;background:
+  linear-gradient(transparent 35%,rgba(0,0,0,.72)),
+  radial-gradient(circle at top right,rgba(0,0,0,.45),transparent 60px)}
 .modal .hero.hasimg .x,.modal .hero.hasimg .kind,.modal .hero.hasimg h3{position:relative;z-index:1}
 .modal .hero .kind{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;opacity:.9}
 .modal .hero h3{font-size:28px;margin-top:4px;text-shadow:0 1px 4px rgba(0,0,0,.4)}
-.modal .x{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.3);border:0;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;line-height:1}
-.modal .x:hover{background:rgba(0,0,0,.5)}
+.modal .x{position:absolute;top:10px;right:10px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);border:1.5px solid rgba(255,255,255,.35);color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:16px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.35);transition:background .15s ease,transform .15s ease}
+.modal .x:hover{background:rgba(0,0,0,.75)}
+.modal .x:active{transform:scale(.92)}
 .modal .body{padding:20px 22px 22px}
 .specs{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px;margin:2px 0 16px}
 .spec .k{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);font-weight:700}
@@ -193,9 +196,7 @@ input.search:focus-visible{outline:3px solid var(--brass);outline-offset:2px;bor
 .filt select{font-family:var(--sans);font-size:14px;letter-spacing:normal;text-transform:none;font-weight:500;padding:8px 11px;border:1px solid var(--hair);border-radius:9px;background:var(--card);color:var(--ink);min-width:112px}
 .clear-filters{align-self:flex-end;background:transparent;border:1px solid var(--hair);color:var(--ink-2);font-weight:600;font-size:13px;padding:8px 13px;border-radius:9px;cursor:pointer}
 .clear-filters:hover{color:var(--ink);border-color:var(--ink-2)}
-.filt.bestfit{flex-direction:row;align-items:center;gap:7px;text-transform:none;letter-spacing:normal;font-size:13px;font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--hair);border-radius:9px;padding:8px 11px;cursor:pointer;align-self:flex-end}
-.filt.bestfit input{width:16px;height:16px;accent-color:var(--brass);cursor:pointer}
-@media(max-width:560px){.filt{flex:1;min-width:calc(50% - 5px)}.filt select{min-width:0;width:100%}.filt.bestfit{min-width:100%;justify-content:center}}
+@media(max-width:560px){.filt{flex:1;min-width:calc(50% - 5px)}.filt select{min-width:0;width:100%}}
 
 /* Backfill maintenance tool */
 .bf-progress{margin-top:16px;font-size:13px;color:var(--ink-2)}
@@ -228,6 +229,8 @@ input.search:focus-visible{outline:3px solid var(--brass);outline-offset:2px;bor
 
 .eligible-note{margin-top:18px;padding-top:14px;border-top:1px solid var(--hair);font-size:15px;color:var(--ink-2)}
 .eligible-note b{color:var(--ink)}
+.link-toggle{background:none;border:0;color:var(--brass-lo);font-weight:600;font-size:14px;cursor:pointer;padding:0 0 0 8px;text-decoration:underline}
+.link-toggle:hover{color:var(--brass)}
 
 .share{display:flex;gap:20px;flex-wrap:wrap;align-items:center}
 .qr{background:#fff;padding:10px;border-radius:12px;line-height:0;box-shadow:0 4px 14px var(--shadow)}
