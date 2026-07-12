@@ -215,6 +215,20 @@ default; fresh defaults were always permissive: 2 players → 42 games, kind →
 fit). Both gates default permissive and only narrow when the host opts in. Verified in the browser
 (field order, the reset clearing the strand, 42-game permissive default at 2 players).
 
+2026-07-11 attention 3-way + Shelf 2hr filter (LIVE, Kevin's feedback): (1) **Shelf "Length" filter
+gained an "Under 2 hr" (120) option** (`Shelf.jsx`), matching Game Time's new time buckets — the
+existing `g.time <= Number(f.time)` logic handles it, no other change. (2) **Game Time's attention
+control is now 3-way.** The `att` field is a curated **family tag** (set in `GameForm`'s "Attention
+needed": background/semi/focus — NOT from BGG; BGG has no attention/engagement metric, and the nearest
+proxy `weight` is already spent on the Effort axis). It always stored three levels, but the old
+"Half-watching a movie?" Seg only exposed background/focus/null, so `semi` games were invisible and
+the gate felt binary. Relabeled **"How much focus tonight?"** with 👀 Half-watch / 🙂 Light focus /
+🧠 All-in / Any, and made `eligible()` symmetric: added `if (c.att === 'semi' && g.att === 'focus')
+return false` alongside the two existing lines — so background=mindless-only, semi=rules out
+full-focus games, focus=rules out mindless games (semi is the flexible middle). `constraintPills`
+shows a 🙂 Light focus pill for semi. Verified live: the three levels now narrow distinctly on the
+real catalog (Any 50 / Half-watch 5 / Light focus 32 / All-in 45).
+
 Security note: the Firebase web API key is public by design (it ships in the client bundle);
 it was once committed in git history and flagged by GitHub. It's now **restricted in Google
 Cloud** to the site's referrers, so the alert is dismissible. Never paste the key value into

@@ -157,6 +157,7 @@ function FilterBar({ f, setF, kinds, active, onClear }) {
           <option value="15">Under 15m</option>
           <option value="30">Under 30m</option>
           <option value="60">Under 60m</option>
+          <option value="120">Under 2 hr</option>
         </select>
       </label>
       <label className="filt">

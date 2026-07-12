@@ -159,9 +159,9 @@ function SetTable({ c, setC, eligibleGames, games, onOpen, busy }) {
           ]} />
         </div>
         <div className="field">
-          <label>Half-watching a movie?</label>
+          <label>How much focus tonight?</label>
           <Seg value={c.att} onChange={set('att')} options={[
-            ['background', '👀 Keep it light'], ['focus', '🧠 We’re all-in'], [null, 'Doesn’t matter'],
+            ['background', '👀 Half-watch'], ['semi', '🙂 Light focus'], ['focus', '🧠 All-in'], [null, 'Any'],
           ]} />
         </div>
         {c.players && (
