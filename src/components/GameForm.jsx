@@ -203,12 +203,12 @@ export default function GameForm({ mode = 'add', initial, onSubmitCore, onDone, 
       <div className="field">
         <label>Focus level</label>
         <Seg value={f.focus} onChange={set('focus')} options={[
-          [null, 'Auto'], [1, '🍿'], [2, '📱'], [3, '📵'], [4, '🤔'], [5, '🧠'],
+          [null, 'Auto'], [1, 'Background'], [2, 'Casual'], [3, 'Focused'],
         ]} />
         <p className="hint" style={{ margin: '4px 0 0' }}>
           {f.focus == null
             ? <>Auto → <b>{focusLabel(derivedFocus({ ...(f.bgg || {}), kind: f.kind, time: Number(f.time) }))}</b> from BGG data. Pick a level to pin it.</>
-            : <>Pinned. 🍿 TV-on · 📱 phone-OK · 📵 screens-off · 🤔 locked-in · 🧠 all-in.</>}
+            : <>Pinned. How much attention a good game of this needs.</>}
         </p>
       </div>
       <div className="field">

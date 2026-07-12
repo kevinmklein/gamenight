@@ -159,9 +159,9 @@ function SetTable({ c, setC, eligibleGames, games, onOpen, busy }) {
           ]} />
         </div>
         <div className="field">
-          <label>How much focus can we give?</label>
+          <label>What focus are we after?</label>
           <Seg value={c.focus} onChange={set('focus')} options={[
-            [1, '🍿 TV on'], [2, '📱 Phone OK'], [3, '📵 Screens off'], [4, '🤔 Locked in'], [5, '🧠 All-in'], [null, 'Any'],
+            [1, 'Background'], [2, 'Casual'], [3, 'Focused'], [null, 'Any'],
           ]} />
         </div>
         {c.players && (

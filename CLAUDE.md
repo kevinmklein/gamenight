@@ -229,31 +229,36 @@ full-focus games, focus=rules out mindless games (semi is the flexible middle). 
 shows a 🙂 Light focus pill for semi. Verified live: the three levels now narrow distinctly on the
 real catalog (Any 50 / Half-watch 5 / Light focus 32 / All-in 45).
 
-2026-07-11 focus → 5-point distraction ladder (LIVE, replaces the `att` metric): reworked "how much
-attention does a good game demand?" into a robust, mostly-programmatic **5-point Focus scale**
-(Kevin's call to make it robust + finer). **Scale (a distraction ladder):** 1 🍿 TV on · 2 📱 Phone OK
-· 3 📵 Screens off · 4 🤔 Locked in · 5 🧠 All-in. **Key design insight: focus ≠ complexity** — a
-silent word race (Boggle) is light on rules but genuinely heads-down, while a heavy game with lots of
-downtime you can half-watch. So it's **derived from BGG mechanics/categories (attention continuity) as
-much as weight (cognitive load)** — see `src/lib/focus.js` `derivedFocus(g)`: weight sets the
-strategic-depth backbone (this collection is weight-compressed, so weight alone dumps 45/50 at the
-bottom — the same failure that killed the absolute Complexity filter), then mechanics adjust
-(real-time/speed/dexterity +2 "can't look away", memory +1 "must track", deduction/bluffing bumps;
-party/children/roll-and-move/player-judge penalties let attention wander back down). **No migration:**
-`focusOf(g)` derives live for all 50, so records are "populated" with zero writes; a hand-pinned
-integer `focus` (1–5) on the doc **overrides** the derivation. The Add/Edit form's old "Attention
-needed" Seg is now a **"Focus level"** picker (Auto + 1–5) with a live "Auto → 🤔 Locked in from BGG
-data" hint — that's the hand-classify escape hatch for the ~4 heuristic misses (e.g. Obama Llama
-derives 4, should be ~2; Life derives 3, should be ~1–2). **Game Time gate is a ceiling:** "How much
-focus can we give?" → `eligible()` rules out games whose `focusOf` exceeds the pick (movie night → only
-the half-watchable). Verified live: cumulative counts TV-on 17 / Phone-OK 33 / Screens-off 37 /
-Locked-in 48 / All-in 50; pin overrides derivation; detail modals + `constraintPills` show Focus.
-Files: `src/lib/focus.js` (new — labels + `derivedFocus`/`focusOf`), `night.js` (ceiling gate on
-`c.focus`, snapshot `focus`, pill), `GameNight.jsx` (5-way control, `c.focus` replaces `c.att`),
+2026-07-12 focus → 3-tier Focus scale (LIVE, replaces the `att` metric): reworked "how much attention
+does a good game demand?" into a robust, mostly-programmatic **3-tier Focus scale: Background · Casual
+· Focused** (in `src/lib/focus.js`; `FOCUS_LABELS`/`FOCUS_BLURB` 1–3). **Key design insight: focus ≠
+complexity** — a silent word race (Boggle) is light on rules but genuinely heads-down, while a heavy
+game with lots of downtime you can half-watch. So it's **derived from BGG mechanics/categories
+(attention continuity) as much as weight (cognitive load)**: `derivedFocus(g)` computes a fine 1–5
+score (weight backbone — this collection is weight-compressed, so weight alone dumps most games at the
+bottom, the failure that killed the Complexity filter — then mechanics adjust: real-time/speed/
+dexterity +2 "can't look away", memory +1, deduction/bluffing bumps; party/children/roll-and-move/
+player-judge penalties let attention wander) and **collapses 1–5 → 1–3** ({1:1,2:2,3:2,4:3,5:3}).
+**No migration:** `focusOf(g)` derives live for all 50 (a hand-pinned integer `focus` 1–3 on the doc
+overrides it). The Add/Edit form's old "Attention needed" Seg is now a **"Focus level"** picker (Auto
++ Background/Casual/Focused) with a live "Auto → … from BGG data" hint — the hand-classify escape
+hatch. Pinned outliers: **Obama Llama → Background** (party game; derives Focused); Life/Tapple/Here to
+Slay derive to sensible tiers on the coarser scale so their earlier pins are redundant-but-correct.
+**Game Time gate is a TARGET tier (not a ceiling):** control "What focus are we after?" → Background /
+Casual / Focused / Any; `eligible()` keeps games where `focusOf(g) === c.focus` (each pick = games AT
+that tier, a distinct mood). **Why target, not ceiling** (the design fork Kevin resolved): a *ceiling*
+("at most this focus") makes the top tier == Any — that's the redundancy Kevin flagged (old "All-in"
+== "Any") and it's inherent (nothing on a bottom-heavy shelf demands more than the top tier). Target
+gives 4 *distinct* buttons (Background 18 / Casual 20 / Focused 12 / Any 50 on the real catalog) and a
+real "Focused / brain-burner night" option, at the cost that a pick shows only that tier (Casual won't
+also include Background games). **Journey (don't re-litigate):** first shipped as a 5-point distraction
+ladder (🍿 TV on…🧠 All-in) with a ceiling gate, but that had a redundant top button and behavior-guessy
+labels — collapsed to 3 focus-descriptor tiers + switched ceiling→target to kill the redundancy for
+good. Files: `src/lib/focus.js` (labels + `derivedFocus`/`focusOf`), `night.js` (target gate on
+`c.focus`, snapshot `focus`, pill), `GameNight.jsx` (4-way target control, `c.focus` replaces `c.att`),
 `gameNightBits.jsx` + `Shelf.jsx` (Focus spec replaces Attention), `GameForm.jsx` (Focus-level picker).
-Legacy `att` field stays on docs (harmless, unused by the gate now); `attLabel` in `catalog.js` is
-now dead but left in place. **Classifier is a heuristic first pass (~75% right) — Kevin pins the
-outliers via Edit.**
+Legacy `att` field stays on docs (harmless, unused by the gate); `attLabel` in `catalog.js` is dead
+but left in place. **Classifier is a heuristic first pass — Kevin pins outliers via the Edit form.**
 
 Security note: the Firebase web API key is public by design (it ships in the client bundle);
 it was once committed in git history and flagged by GitHub. It's now **restricted in Google
@@ -357,7 +362,7 @@ manifest icons, transparent for favicons).
 | Play time | <15 / 15–30 / 30–60 / 60+ min | BGG (auto) / manual |
 | Time-to-table (setup) | instant / quick / involved | family tag |
 | Location | couch / table / either | family tag |
-| Focus | 5-point distraction ladder (🍿 TV on → 🧠 All-in) | BGG-derived (`derivedFocus`) + per-game override |
+| Focus | 3 tiers: Background / Casual / Focused | BGG-derived (`derivedFocus`) + per-game override; target-tier gate |
 | Players | min–max | BGG (auto) / manual |
 | Type (kind) | Card / Strategy / Party / Dice / Dominoes / Abstract / Family / Word Game | BGG + tag |
 First four are the hard "rule things out" constraints; the rest are soft preferences. Complexity

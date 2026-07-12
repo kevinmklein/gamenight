@@ -105,9 +105,9 @@ export function eligible(games, c = {}) {
     if (c.maxTime && g.time > c.maxTime) return false
     if (c.loc === 'couch' && g.loc === 'table') return false
     if (c.loc === 'table' && g.loc === 'couch') return false
-    // Focus is a ceiling: "how much attention can we give tonight?" rules out
-    // games that demand MORE than that (movie night → only the half-watchable).
-    if (c.focus && focusOf(g) > c.focus) return false
+    // Focus is a target tier: "what focus are we after?" → games AT that tier
+    // (Background / Casual / Focused), so each pick is a distinct mood.
+    if (c.focus && focusOf(g) !== c.focus) return false
     if (c.players && !seatsPlayers(g, c.players)) return false
     if (c.kind && g.kind !== c.kind) return false
     // "Best at N" — community-poll gate; unknown (no BGG data) doesn't qualify.
@@ -226,7 +226,7 @@ export function constraintPills(c = {}) {
     c.bestAtN && c.players ? `★ Best at ${c.players}` : null,
     c.maxTime ? `⏱ Under ${c.maxTime}m` : '⏱ Any length',
     c.loc === 'couch' ? '🛋 Couch' : c.loc === 'table' ? '🪑 Table' : '🛋🪑 Either',
-    c.focus ? `${FOCUS_LABELS[c.focus]} or lighter` : '🎯 Any focus',
+    c.focus ? `🎯 ${FOCUS_LABELS[c.focus]}` : '🎯 Any focus',
     c.kind ? `🎲 ${c.kind}` : null,
     // Soft preferences only show up as a pill when the host actually set them.
     EFFORT_PILL[c.effort], VIBE_PILL[c.vibe], SETUP_PILL[c.setup],
