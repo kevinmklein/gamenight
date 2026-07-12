@@ -278,7 +278,7 @@ function Dashboard({ games, plays }) {
   )
 }
 
-export default function Stats({ games, plays }) {
+export default function Stats({ games, plays, onAddGame }) {
   return (
     <section className="tab">
       <div className="eyebrow">Since we started tracking</div>
@@ -294,6 +294,19 @@ export default function Stats({ games, plays }) {
         <h3 className="stat-h">Log a Game Time</h3>
       </div>
       <LogPlay games={games} />
+
+      {onAddGame && (
+        <div className="panel add-cta">
+          <div>
+            <div className="eyebrow">Build the collection</div>
+            <h3 className="stat-h">New game on the shelf?</h3>
+            <p className="hint" style={{ margin: '4px 0 0' }}>
+              Search BoardGameGeek to auto-fill the details, or enter it by hand.
+            </p>
+          </div>
+          <button className="btn brass" onClick={onAddGame}>＋ Add a Game</button>
+        </div>
+      )}
     </section>
   )
 }

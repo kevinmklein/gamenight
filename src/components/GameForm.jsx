@@ -4,6 +4,7 @@ import { BGG_META_KEYS, bggMetaFromThing } from '../lib/bgg.js'
 import { derivedFocus, focusLabel } from '../lib/focus.js'
 import { Seg } from './gameNightBits.jsx'
 import BggAutofill from './BggAutofill.jsx'
+import ImageLightbox from './ImageLightbox.jsx'
 
 const MAX_DIM = 700
 
@@ -38,7 +39,7 @@ function resizePhoto(file, maxDim = MAX_DIM, quality = 0.82) {
 const KINDS = ['Card', 'Strategy', 'Party', 'Dice', 'Dominoes', 'Abstract', 'Family', 'Word Game']
 const BLANK = {
   name: '', kind: 'Card', time: 20, minP: 2, maxP: 4,
-  loc: 'either', att: 'semi', setup: 'quick', focus: null, image: '', bgg: null,
+  loc: 'either', att: 'semi', setup: null, focus: null, image: '', bgg: null,
 }
 
 // Curated box art lives in public/covers/ (see CLAUDE.md). The image field
@@ -70,7 +71,7 @@ function fromGame(g) {
   return {
     name: g.name || '', kind: g.kind || 'Card',
     time: g.time ?? 20, minP: g.minPlayers ?? '', maxP: g.maxPlayers ?? '',
-    loc: g.loc || 'either', att: g.att || 'semi', setup: g.setup || 'quick',
+    loc: g.loc || 'either', att: g.att || 'semi', setup: g.setup || null,
     focus: Number.isInteger(g.focus) ? g.focus : null,
     image: stripCoversPrefix(g.image || ''), bgg: bggFromGame(g),
   }
@@ -85,6 +86,7 @@ export default function GameForm({ mode = 'add', initial, onSubmitCore, onDone, 
   const [toast, setToast] = useState('')
   const [photoBusy, setPhotoBusy] = useState(false)
   const [photoErr, setPhotoErr] = useState('')
+  const [lightbox, setLightbox] = useState(null)
   const set = (k) => (v) => setF((s) => ({ ...s, [k]: v }))
 
   const canSave = f.name.trim().length > 0 && !saving && !photoBusy
@@ -203,7 +205,7 @@ export default function GameForm({ mode = 'add', initial, onSubmitCore, onDone, 
       <div className="field">
         <label>Focus level</label>
         <Seg value={f.focus} onChange={set('focus')} options={[
-          [null, 'Auto'], [1, 'Background'], [2, 'Casual'], [3, 'Focused'],
+          [1, 'Background'], [2, 'Casual'], [3, 'Focused'], [null, 'Auto'],
         ]} />
         <p className="hint" style={{ margin: '4px 0 0' }}>
           {f.focus == null
@@ -214,13 +216,18 @@ export default function GameForm({ mode = 'add', initial, onSubmitCore, onDone, 
       <div className="field">
         <label>Time to set up</label>
         <Seg value={f.setup} onChange={set('setup')} options={[
-          ['instant', 'Instant'], ['quick', 'Quick'], ['involved', 'Involved'],
+          ['instant', 'Instant'], ['quick', 'Quick'], ['involved', 'Involved'], [null, 'Any'],
         ]} />
       </div>
       <div className="field">
         <label>Box art (optional)</label>
         <div className="cover-upload">
-          {shownImg && <img className="cover-thumb" src={shownImg} alt="" />}
+          {shownImg && (
+            <button type="button" className="imgbtn" title="Tap to enlarge"
+              onClick={() => setLightbox(shownImg)}>
+              <img className="cover-thumb" src={shownImg} alt="" />
+            </button>
+          )}
           <label className="btn ghost file-btn">
             {photoBusy ? 'Processing…' : f.image ? 'Change photo' : '📷 Upload a photo'}
             <input type="file" accept="image/*" onChange={handlePhoto} disabled={photoBusy} hidden />
@@ -264,6 +271,7 @@ export default function GameForm({ mode = 'add', initial, onSubmitCore, onDone, 
       </div>
 
       {toast && <div className="toast">{toast}</div>}
+      {lightbox && <ImageLightbox src={lightbox} alt={f.name} onClose={() => setLightbox(null)} />}
     </>
   )
 }

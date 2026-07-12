@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { bggSearch, bggThing } from '../lib/bgg.js'
+import ImageLightbox from './ImageLightbox.jsx'
 
 // Turn any error from the BGG helper into friendly guidance.
 function friendly(e) {
@@ -20,6 +21,7 @@ export default function BggAutofill({ onPick, label = 'Auto-fill from BoardGameG
   const [busyId, setBusyId] = useState(null)
   const [error, setError] = useState('')
   const [picked, setPicked] = useState(null)
+  const [lightbox, setLightbox] = useState(null)
   const reqRef = useRef(0)
 
   useEffect(() => {
@@ -83,13 +85,21 @@ export default function BggAutofill({ onPick, label = 'Auto-fill from BoardGameG
 
       {picked && (
         <div className="bgg-picked">
-          {picked.thumbnail && <img src={picked.thumbnail} alt="" />}
+          {picked.thumbnail && (
+            <button type="button" className="imgbtn" title="Tap to see the full cover"
+              onClick={() => setLightbox(picked.image || picked.thumbnail)}>
+              <img src={picked.thumbnail} alt="" />
+            </button>
+          )}
           <span>
             ✓ Filled from <strong>{picked.name}</strong>
-            {picked.year ? ` (${picked.year})` : ''}. Review the fields below before saving.
+            {picked.year ? ` (${picked.year})` : ''}.{' '}
+            {picked.thumbnail ? 'Tap the cover to enlarge, then r' : 'R'}eview the fields below before saving.
           </span>
         </div>
       )}
+
+      {lightbox && <ImageLightbox src={lightbox} alt={picked?.name || ''} onClose={() => setLightbox(null)} />}
 
       {error && <span className="hint warn">{error}</span>}
       {!searching && !results.length && !error && !picked && (

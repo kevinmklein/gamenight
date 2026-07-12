@@ -4,6 +4,7 @@ import GameForm from './GameForm.jsx'
 export default function AddGame({ onDone }) {
   return (
     <section className="tab">
+      <button type="button" className="backlink" onClick={onDone}>← Back to the shelf</button>
       <div className="eyebrow">Build the collection</div>
       <h2 className="big">Add a Game</h2>
       <p className="lead">
@@ -21,9 +22,10 @@ export default function AddGame({ onDone }) {
         />
       </div>
 
-      <p className="hint" style={{ marginTop: 18, textAlign: 'center' }}>
-        Have games added before BoardGameGeek sync existed?{' '}
-        <a href="#/backfill" onClick={() => { window.location.hash = '#/backfill' }}>Backfill their BGG data →</a>
+      <p className="admin-note">
+        <a href="#/backfill" onClick={() => { window.location.hash = '#/backfill' }}>
+          Admin · Backfill BGG data for older games
+        </a>
       </p>
     </section>
   )

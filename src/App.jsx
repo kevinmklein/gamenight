@@ -44,11 +44,13 @@ export default function App() {
     return () => { cancelled = true; unsubGames(); unsubPlays() }
   }, [])
 
+  // 'add' is intentionally NOT a top-level tab — it's an occasional-use sub-view
+  // reached from the Shelf's add button and a button at the bottom of Play Stats,
+  // so the three headline features own the nav.
   const tabs = [
     ['shelf', 'Our Shelf'],
     ['night', 'Game Time'],
     ['stats', 'Play Stats'],
-    ['add', 'Add a Game'],
   ]
 
   const joining = route.name === 'join'
@@ -85,7 +87,7 @@ export default function App() {
             )}
             {tab === 'add' && <AddGame onDone={() => setTab('shelf')} />}
             {tab === 'night' && <GameNight games={games} uid={uid} />}
-            {tab === 'stats' && <Stats games={games} plays={plays} />}
+            {tab === 'stats' && <Stats games={games} plays={plays} onAddGame={() => setTab('add')} />}
           </>
         )}
       </div>
