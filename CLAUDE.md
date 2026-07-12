@@ -158,6 +158,63 @@ in Set the Table; added a "See the list ▾" toggle that expands to the actual e
 browse — not just count — while adjusting constraints. `GameNight.jsx` now computes `eligibleGames`
 (not just a count) and passes it to `SetTable`. Verified live in the browser throughout.
 
+2026-07-11 Game Time ballot rebuild (LIVE): fixed the core fairness bug and deepened the shortlist.
+**The bug:** `buildBallot`'s old deterministic top-N (top-3 by `plays`, top-3 by dustiness) collapsed
+to **alphabetical** whenever play history was sparse — with almost every game at `plays:0`/no
+`lastPlayed`, both sorts tied and JS's stable sort preserved the incoming `orderBy('name')` order, so
+slots 1–6 were locked to "the first 6 games A→Z" every session, and the display order was fixed too
+(primacy bias). **The fix — a weighted lottery** (`ballotWeight` + rewritten `buildBallot` in
+`night.js`): each eligible game gets a weight (base 1 + freshness/anti-rut + BGG `rating` quality +
+sleeper + best-at-N + soft-pref matches), then we **sample 8 without replacement**, shrinking a
+kind's odds by ×0.45 per already-picked game of that kind (soft variety), and **shuffle the final
+display order**. Verified against the live 50-game catalog: 300 runs → all 50 games appear, first
+slot is 50 distinct games, and the once-100%-locked early-alphabet games now sit at 11–24%.
+**Two new SOFT axes** in Set the Table (nudges, NOT gates — `eligible()` is untouched, so the "N on
+the table" count still reflects only the hard gates): **Effort/brain-burn** (Chill/Medium/Big
+strategy) and **Vibe/energy** (Calm/Lively), plus **Setup time** (Instant/Quick/Involved) off the
+existing per-game `setup` tag. Key design principle established: **hard gates for objective
+constraints (players/time/loc/att), soft weights for fuzzy preferences** — this is why the removed
+absolute Complexity *filter* isn't coming back as a gate. Effort is graded **relative to your own
+shelf** (`effortThresholds`/`effortBucketOf` split the collection's `weight` values into terciles —
+14 light/18 medium/16 heavy on the real catalog, vs the absolute scale's dead 45/50-Light), which
+rescues the metric the old filter couldn't use. Vibe is **auto-derived** (`vibeOf`) from BGG
+`categories`/`mechanics` + our `kind` (loud/social → lively, thinky/quiet → calm; tie/no-data →
+null) — no manual tagging. **Sleeper hit** (`isSleeper`: BGG `rating`≥7 + dusty ≥30d) gets a lottery
+boost and a **💎 Sleeper hit** badge on the ballot cards (Carcassonne/Chess/Hot Streak/Ticket to
+Ride qualify today). `constraintPills` appends the soft prefs when set; `buildBallot` snapshots now
+carry `sleeper`/`effort`/`vibe`, surfaced in `GameInfoModal` (Effort + Vibe specs; Effort shows the
+relative "for your shelf" label). Files: `night.js` (engine), `GameNight.jsx` (SetTable controls +
+`c` now has `effort`/`vibe`/`setup`), `gameNightBits.jsx` (badge + modal specs), `styles.css`
+(`.sleeper-badge`, `.soft-head`). Verified end-to-end in the browser (engine distribution stats,
+soft-pref discrimination, pills, badge render, modal specs). Left one throwaway session in Firestore.
+
+2026-07-11 Set-the-Table follow-up (LIVE, Kevin's feedback): (1) **Moved the "That leaves N games on
+the table" count above the "Set the mood" section** — the soft axes don't change it (they only weight
+the lottery), so it now sits with the hard gates that DO move it, instead of below them where the
+static number looked broken. (2) **Longer time buckets** — the time gate no longer implies "Full =
+60m" (Kevin wants to encourage 90–120m games); options are now Quick·15m / A bit·30m / An hour /
+**Long haul · 2hr (120)** / No limit. (3) **Two new BGG-powered HARD gates** so the eligible count
+visibly narrows instead of hovering in the opaque 20–30s: **"What kind of game?"** (`c.kind` — Any +
+every kind on the shelf; `eligible()` filters `g.kind !== c.kind`) and **"Which games shine at N?"**
+(`c.bestAtN`, a two-option toggle that only appears once a player count is set; gates on
+`playsBestAt` — BGG's community best-count poll, treating no-BGG-data as "doesn't qualify"). Both
+feed `eligible()`, so the count reacts live: on the real catalog, players=4 → 48, +Best-at-4 → 22,
++Card → 13. `constraintPills` shows a `🎲 {kind}` pill and a `★ Best at N` pill when set. Note this is
+a deliberate exception to "complexity-style fuzzy axes stay soft": kind and best-at-N are objective
+enough to gate on, and Kevin specifically wanted more *visible* narrowing. `c` now also carries
+`kind`/`bestAtN`. Verified end-to-end in the browser (order, time options, live count narrowing, pills).
+
+2026-07-11 Set-the-Table ordering/defaults follow-up (LIVE, Kevin's feedback): (1) **"What kind of
+game?" moved up to second** (right under player count) and **"Which games shine at N?" moved down**
+below the movie question — kind is the more impactful/useful narrower, so it leads. (2) **Changing the
+player count now resets `bestAtN` to false** ("Any that fit") — the players Seg's onChange sets
+`{ players: v, bestAtN: false }` instead of the generic `set('players')`. Without this, toggling
+"Best at 4" then dropping to 2 players left the strict best-at gate on and stranded you at ~1 game
+(the "1/2 games on the table" defect Kevin hit — it was a persisted test-state carryover, not a bad
+default; fresh defaults were always permissive: 2 players → 42 games, kind → Any, best-at → Any that
+fit). Both gates default permissive and only narrow when the host opts in. Verified in the browser
+(field order, the reset clearing the strand, 42-game permissive default at 2 players).
+
 Security note: the Firebase web API key is public by design (it ships in the client bundle);
 it was once committed in git history and flagged by GitHub. It's now **restricted in Google
 Cloud** to the site's referrers, so the alert is dismissible. Never paste the key value into

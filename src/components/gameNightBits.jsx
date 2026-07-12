@@ -103,7 +103,10 @@ export function BallotPicker({ ballot, value, onChange, onSubmit, submitLabel, o
               <span className="strip" style={{ background: `linear-gradient(90deg, ${c.c1}, ${c.c2})` }} />
               <span className="pick">{rank >= 0 ? rank + 1 : ''}</span>
               <span className="bin">
-                <span className="bn">{g.name}</span>
+                <span className="bn">
+                  {g.name}
+                  {g.sleeper && <span className="sleeper-badge">💎 Sleeper hit</span>}
+                </span>
                 <span className="bmeta tnum">
                   {g.time ? `${g.time}m` : ''}{g.players ? ` · ${g.players}` : ''} · {g.kind}
                 </span>
@@ -132,7 +135,10 @@ export function BallotBrowseList({ ballot, onOpen }) {
           <button type="button" className="bcard" key={g.id} onClick={() => onOpen(g)}>
             <span className="strip" style={{ background: `linear-gradient(90deg, ${c.c1}, ${c.c2})` }} />
             <span className="bin">
-              <span className="bn">{g.name}</span>
+              <span className="bn">
+                {g.name}
+                {g.sleeper && <span className="sleeper-badge">💎 Sleeper hit</span>}
+              </span>
               <span className="bmeta tnum">
                 {g.time ? `${g.time}m` : ''}{g.players ? ` · ${g.players}` : ''} · {g.kind}
               </span>
@@ -160,6 +166,8 @@ export function GameInfoModal({ g, onClose }) {
     : { background: `linear-gradient(150deg, ${cover.c1}, ${cover.c2})` }
   const spec = (k, v) => (v ? <div className="spec"><div className="k">{k}</div><div className="v">{v}</div></div> : null)
   const d = playedDaysAgo(g)
+  const EFFORT = { light: '🪶 Chill (for your shelf)', medium: '⚖️ Medium', heavy: '🧠 Big strategy' }
+  const VIBE = { calm: '🌙 Calm & quiet', lively: '🎉 Loud & laughing' }
 
   return (
     <div className="scrim" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
@@ -174,7 +182,8 @@ export function GameInfoModal({ g, onClose }) {
             {spec('Play time', g.time ? `${g.time} min` : null)}
             {spec('Players', g.players)}
             {spec('Best at', g.bestPlayers ? `${g.bestPlayers}${String(g.bestPlayers).endsWith('+') ? '' : ' players'}` : null)}
-            {spec('Complexity', complexityLabel(g.weight))}
+            {spec('Effort', EFFORT[g.effort] || complexityLabel(g.weight))}
+            {spec('Vibe', VIBE[g.vibe])}
             {spec('Min age', minAgeLabel(g.minAge))}
             {spec('Where', locLabel(g.loc))}
             {spec('Attention', attLabel(g.att))}

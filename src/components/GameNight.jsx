@@ -27,7 +27,7 @@ export default function GameNight({ games, uid }) {
   const [session, setSession] = useState(null)
   const [votes, setVotes] = useState([])
   const [step, setStep] = useState('setup')       // setup | share | lobby | vote
-  const [c, setC] = useState({ players: null, maxTime: null, loc: null, att: null })
+  const [c, setC] = useState({ players: null, bestAtN: false, maxTime: null, loc: null, att: null, kind: null, effort: null, vibe: null, setup: null })
   const [busy, setBusy] = useState(false)
   const [logged, setLogged] = useState(false)
 
@@ -61,7 +61,7 @@ export default function GameNight({ games, uid }) {
   async function reveal() { await revealSession(code) }
   function reset() {
     setCode(null); setSession(null); setVotes([]); setStep('setup'); setLogged(false)
-    setC({ players: null, maxTime: null, loc: null, att: null })
+    setC({ players: null, bestAtN: false, maxTime: null, loc: null, att: null, kind: null, effort: null, vibe: null, setup: null })
   }
 
   async function logNight() {
@@ -123,6 +123,7 @@ function SetTable({ c, setC, eligibleGames, games, onOpen, busy }) {
   const [showList, setShowList] = useState(false)
   const [openGame, setOpenGame] = useState(null)
   const count = eligibleGames.length
+  const kinds = [...new Set(games.map((g) => g.kind).filter(Boolean))].sort()
   if (!games.length) {
     return <div className="soon">Add a few games on the <b>Add a Game</b> tab first — Game Time
       votes on your real shelf.</div>
@@ -135,14 +136,20 @@ function SetTable({ c, setC, eligibleGames, games, onOpen, busy }) {
         </p>
         <div className="field">
           <label>How many are playing tonight?</label>
-          <Seg value={c.players} onChange={set('players')} options={[
+          <Seg value={c.players} onChange={(v) => setC((s) => ({ ...s, players: v, bestAtN: false }))} options={[
             [2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6'], [7, '7'], [8, '8+'], [null, 'Any'],
+          ]} />
+        </div>
+        <div className="field">
+          <label>What kind of game?</label>
+          <Seg value={c.kind} onChange={set('kind')} options={[
+            [null, 'Any'], ...kinds.map((k) => [k, k]),
           ]} />
         </div>
         <div className="field">
           <label>How long have we got?</label>
           <Seg value={c.maxTime} onChange={set('maxTime')} options={[
-            [15, 'Quick · 15m'], [30, 'A bit · 30m'], [60, 'Full · 60m'], [null, 'No limit'],
+            [15, 'Quick · 15m'], [30, 'A bit · 30m'], [60, 'An hour'], [120, 'Long haul · 2hr'], [null, 'No limit'],
           ]} />
         </div>
         <div className="field">
@@ -157,6 +164,14 @@ function SetTable({ c, setC, eligibleGames, games, onOpen, busy }) {
             ['background', '👀 Keep it light'], ['focus', '🧠 We’re all-in'], [null, 'Doesn’t matter'],
           ]} />
         </div>
+        {c.players && (
+          <div className="field">
+            <label>Which games shine at {c.players}?</label>
+            <Seg value={c.bestAtN} onChange={set('bestAtN')} options={[
+              [false, 'Any that fit'], [true, `★ Best at ${c.players}`],
+            ]} />
+          </div>
+        )}
         <div className="eligible-note">
           🎲 That leaves <b className="tnum">{count}</b> game{count === 1 ? '' : 's'} on the table.
           {count > 0 && (
@@ -171,6 +186,30 @@ function SetTable({ c, setC, eligibleGames, games, onOpen, busy }) {
             <BallotBrowseList ballot={eligibleGames} onOpen={setOpenGame} />
           </div>
         )}
+        <div className="soft-head">
+          <span className="soft-eyebrow">Set the mood <span className="soft-tag">optional</span></span>
+          <p className="hint" style={{ margin: '2px 0 0' }}>
+            These don’t rule anything out — they just tilt tonight’s shortlist toward what you’re in the mood for.
+          </p>
+        </div>
+        <div className="field">
+          <label>How much brain tonight?</label>
+          <Seg value={c.effort} onChange={set('effort')} options={[
+            ['light', '🪶 Chill'], ['medium', '⚖️ Medium'], ['heavy', '🧠 Big strategy'], [null, 'Any'],
+          ]} />
+        </div>
+        <div className="field">
+          <label>What’s the mood?</label>
+          <Seg value={c.vibe} onChange={set('vibe')} options={[
+            ['calm', '🌙 Calm & quiet'], ['lively', '🎉 Loud & laughing'], [null, 'Any'],
+          ]} />
+        </div>
+        <div className="field">
+          <label>How fast to get going?</label>
+          <Seg value={c.setup} onChange={set('setup')} options={[
+            ['instant', '⚡ Instant'], ['quick', '🎲 Quick'], ['involved', '🧩 Involved'], [null, 'Any'],
+          ]} />
+        </div>
       </div>
       <div className="actions">
         <button className="btn brass" disabled={count < 2 || busy} onClick={onOpen}>
