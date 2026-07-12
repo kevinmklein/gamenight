@@ -282,6 +282,62 @@ in the browser (shelf, detail modal, Game Time Set-the-Table, Add-a-Game form, t
 zero horizontal overflow, CSSOM confirms the coarse-pointer rules parsed; the 16px/tap-target
 block itself needs a real touch device — the desktop preview doesn't emulate coarse pointers).
 
+2026-07-12 UX cleanup pass (Kevin's feedback): (1) **Neutral Seg options are now uniformly
+rightmost.** Every Set-the-Table control (`GameNight.jsx`) already ended with its neutral
+option (Any/No limit/Either); the "What kind of game?" Seg was the odd one with `Any` leading —
+moved to the end. Same fix applied to the Add/Edit form (`GameForm.jsx`): Focus level's `Auto`
+and Time-to-set-up's `Any` moved rightmost. (2) **Time bucket "Long haul · 2hr" → "Committed ·
+2hr".** (3) **Time-to-set-up now defaults to `Any` (null)** — new games no longer force a
+`quick` setup tag; `eligible()`/`ballotWeight` already treat a null setup as "unset" (no gate,
+no weight), and editing preserves any existing value. (4) **"Add a Game" removed from the top
+nav** — the three headline features (Our Shelf · Game Time · Play Stats) own the tab bar now.
+Add-a-Game is a focused sub-view (`tab==='add'`, not in the `tabs` array) reached from a CTA at
+the bottom of Play Stats (`Stats` gets an `onAddGame` prop) and the Shelf's existing add button;
+it gained a "← Back to the shelf" link. (5) **Backfill buried** — the `#/backfill` route still
+works but its link is demoted to a subtle "Admin ·" line at the bottom of Add-a-Game. (6) **BGG
+picked-cover lightbox** — new `src/components/ImageLightbox.jsx` (full-screen image preview,
+closes on scrim/✕/Escape). Tapping the BGG picked cover in `BggAutofill.jsx` (or the box-art
+thumb in `GameForm.jsx`) opens it full-size — the "is this the right box?" moment before saving.
+NOTE: BGG's `/search` returns only name+year (no images), so a cover only exists after you pick a
+result (the per-game `thing` fetch); showing thumbnails on every search row would need 10× the
+API calls, so it's intentionally left off. (7) **Shelf "N matches ↓" jump widget** — appears
+beside Clear when a dropdown filter is active, shows the live match count, and click-scrolls the
+first result to the top (`shelfRef.scrollIntoView`); zero matches render "No matches", no jump.
+
+2026-07-12 aesthetic + mobile-polish pass (four batches, Kevin-directed; the muted cozy-tabletop
+base is unchanged — this is "flair as decorative pillows"). **Batch 1 — per-section tab identity:**
+each tab is its own "room" — **Our Shelf=brass, Game Time=felt green, Play Stats=walnut** (all
+existing tokens). Subtle treatment on the bar: accent stripe + a whisper of tint on the active tab
+(`nav.tabs button[data-tab=…][aria-selected]`), stripe grows in on select (`@keyframes stripe-in`).
+New per-section vars **`--accent`/`--accent-ink` scoped on `.wrap[data-section]`** (App.jsx sets
+`data-section={tab}`); the section `.eyebrow` adopts `--accent-ink` as the first content-level
+identity cue. **Design rule: accent = identity chrome; brass stays the universal data color**
+(leaderboard/results bars unchanged). **Batch 2 — mobile comfort:** Play Stats stat cards go 2-up
+on phones (numeric pair side-by-side, "most played" full-width); Set-the-Table's soft "Set the mood"
+axes (effort/vibe/setup) collapse under a disclosure (`showMood`, collapsed by default, felt "N on"
+badge when prefs set); **sticky "Open the table →" CTA** on mobile (`.setup-actions`); the stepper
+shows only the active step's label on phones (`.step-label`); comfier tap targets on small text
+links. **Batch 3 — fun & delight:** the winner reveal fires a **one-shot CSS confetti burst**
+(`Confetti` in `gameNightBits.jsx`) + the winner name pops in (`@keyframes winner-pop`), both
+skipped under reduced-motion; **the winner is a button — tap/Enter to replay the confetti** (Sara &
+Sophia favorite); Play Stats headline numbers **count up** from zero (`useCountUp` in `Stats.jsx`);
+press feedback (scale-down) on Segs & chips; empty states get a glyph + warmer copy; logo wiggles on
+hover / squishes on tap. **Batch 4 — legibility + texture:** the shelf box-art meta plate got a
+deeper/taller bottom scrim + text-shadow so time/players read on light covers (Boggle/Catan/
+Balderdash were washing out); the winner-hero gets a whisper of felt-weave texture. Follow-up fixes:
+(a) **Shelf header push-down** — `.h-row` used `align-items:baseline`, which aligned the short search
+box's baseline with the big title and shoved the eyebrow/title down ~12px → `align-items:center`.
+(b) **Confetti replay bug** — `<Confetti>` and `<h2>` were both `key={burst}` (sibling key
+collision), so each tap STACKED a new confetti layer instead of replacing (3 taps → 84 orphan
+spans); distinct keys (`confetti-${burst}` / `name-${burst}`) → clean replace, 1 layer. (c) **Logo
+→ home** — the header logo is now a `.brand-home` button that returns to Our Shelf (clears any
+`#/join`/`#/backfill` hash). (d) **Mobile filter-result** — the "N matches"+Clear pair spans the row
+50/50 on phones (`margin-left:0`, buttons `flex:1`) instead of a tiny right-aligned Clear. (e) **Set-
+the-Table expander arrows** — the tiny `▾` (rendered dot-like on iOS) → full `▼` on both "Set the
+mood" and "See the list", matching the `▲` collapse glyph. **Confetti + count-up + the coarse-pointer
+tap-target/16px rules can't be seen in the desktop preview (it doesn't capture fast overlays or
+emulate touch) — verify on a real device.** All new motion honors `prefers-reduced-motion`.
+
 Security note: the Firebase web API key is public by design (it ships in the client bundle);
 it was once committed in git history and flagged by GitHub. It's now **restricted in Google
 Cloud** to the site's referrers, so the alert is dismissible. Never paste the key value into
@@ -422,6 +478,9 @@ see Current state — the absolute BGG scale didn't discriminate well across thi
   - `src/components/BggAutofill.jsx` — debounced BGG search box + picker at the top of
     `GameForm` (add + edit). `onPick(thing)` hands full details up; the form applies them and
     protects curated art. In edit mode the label is "Re-sync from BoardGameGeek".
+  - `src/components/ImageLightbox.jsx` — full-screen box-art preview (closes on scrim/✕/Escape).
+    Used by `BggAutofill` (the picked BGG cover) and `GameForm` (the box-art thumb) so you can
+    judge a cover full-size before saving.
   - `src/components/GameNight.jsx` — host flow (Set the Table → Share → Lobby → Reveal).
     On open it re-rolls the room code if `sessionExists()` (codes recycle; reusing a live
     one would resurrect the old session's votes subcollection in the new lobby). Renders the
