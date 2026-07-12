@@ -27,7 +27,7 @@ export default function GameNight({ games, uid }) {
   const [session, setSession] = useState(null)
   const [votes, setVotes] = useState([])
   const [step, setStep] = useState('setup')       // setup | share | lobby | vote
-  const [c, setC] = useState({ players: null, bestAtN: false, maxTime: null, loc: null, att: null, kind: null, effort: null, vibe: null, setup: null })
+  const [c, setC] = useState({ players: null, bestAtN: false, maxTime: null, loc: null, focus: null, kind: null, effort: null, vibe: null, setup: null })
   const [busy, setBusy] = useState(false)
   const [logged, setLogged] = useState(false)
 
@@ -61,7 +61,7 @@ export default function GameNight({ games, uid }) {
   async function reveal() { await revealSession(code) }
   function reset() {
     setCode(null); setSession(null); setVotes([]); setStep('setup'); setLogged(false)
-    setC({ players: null, bestAtN: false, maxTime: null, loc: null, att: null, kind: null, effort: null, vibe: null, setup: null })
+    setC({ players: null, bestAtN: false, maxTime: null, loc: null, focus: null, kind: null, effort: null, vibe: null, setup: null })
   }
 
   async function logNight() {
@@ -159,9 +159,9 @@ function SetTable({ c, setC, eligibleGames, games, onOpen, busy }) {
           ]} />
         </div>
         <div className="field">
-          <label>How much focus tonight?</label>
-          <Seg value={c.att} onChange={set('att')} options={[
-            ['background', '👀 Half-watch'], ['semi', '🙂 Light focus'], ['focus', '🧠 All-in'], [null, 'Any'],
+          <label>How much focus can we give?</label>
+          <Seg value={c.focus} onChange={set('focus')} options={[
+            [1, '🍿 TV on'], [2, '📱 Phone OK'], [3, '📵 Screens off'], [4, '🤔 Locked in'], [5, '🧠 All-in'], [null, 'Any'],
           ]} />
         </div>
         {c.players && (

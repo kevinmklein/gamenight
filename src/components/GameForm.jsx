@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { coverFor } from '../lib/catalog.js'
 import { BGG_META_KEYS, bggMetaFromThing } from '../lib/bgg.js'
+import { derivedFocus, focusLabel } from '../lib/focus.js'
 import { Seg } from './gameNightBits.jsx'
 import BggAutofill from './BggAutofill.jsx'
 
@@ -37,7 +38,7 @@ function resizePhoto(file, maxDim = MAX_DIM, quality = 0.82) {
 const KINDS = ['Card', 'Strategy', 'Party', 'Dice', 'Dominoes', 'Abstract', 'Family', 'Word Game']
 const BLANK = {
   name: '', kind: 'Card', time: 20, minP: 2, maxP: 4,
-  loc: 'either', att: 'semi', setup: 'quick', image: '', bgg: null,
+  loc: 'either', att: 'semi', setup: 'quick', focus: null, image: '', bgg: null,
 }
 
 // Curated box art lives in public/covers/ (see CLAUDE.md). The image field
@@ -70,6 +71,7 @@ function fromGame(g) {
     name: g.name || '', kind: g.kind || 'Card',
     time: g.time ?? 20, minP: g.minPlayers ?? '', maxP: g.maxPlayers ?? '',
     loc: g.loc || 'either', att: g.att || 'semi', setup: g.setup || 'quick',
+    focus: Number.isInteger(g.focus) ? g.focus : null,
     image: stripCoversPrefix(g.image || ''), bgg: bggFromGame(g),
   }
 }
@@ -128,7 +130,7 @@ export default function GameForm({ mode = 'add', initial, onSubmitCore, onDone, 
       minPlayers: Number(f.minP) || null,
       maxPlayers: Number(f.maxP) || null,
       players,
-      loc: f.loc, att: f.att, setup: f.setup,
+      loc: f.loc, att: f.att, setup: f.setup, focus: f.focus,
       cover: coverFor(name),
       image: expandCoversPrefix(f.image) || null,
       // Spread BGG-derived fields (incl. bggImage) when linked; never overwrites `image`.
@@ -199,10 +201,15 @@ export default function GameForm({ mode = 'add', initial, onSubmitCore, onDone, 
         ]} />
       </div>
       <div className="field">
-        <label>Attention needed</label>
-        <Seg value={f.att} onChange={set('att')} options={[
-          ['background', '👀 Half-watch OK'], ['semi', 'Light focus'], ['focus', '🧠 All-in'],
+        <label>Focus level</label>
+        <Seg value={f.focus} onChange={set('focus')} options={[
+          [null, 'Auto'], [1, '🍿'], [2, '📱'], [3, '📵'], [4, '🤔'], [5, '🧠'],
         ]} />
+        <p className="hint" style={{ margin: '4px 0 0' }}>
+          {f.focus == null
+            ? <>Auto → <b>{focusLabel(derivedFocus({ ...(f.bgg || {}), kind: f.kind, time: Number(f.time) }))}</b> from BGG data. Pick a level to pin it.</>
+            : <>Pinned. 🍿 TV-on · 📱 phone-OK · 📵 screens-off · 🤔 locked-in · 🧠 all-in.</>}
+        </p>
       </div>
       <div className="field">
         <label>Time to set up</label>

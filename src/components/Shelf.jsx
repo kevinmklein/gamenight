@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  deleteGame, updateGame, playedDaysAgo, agoLabel, coverImageFor, locLabel, attLabel,
+  deleteGame, updateGame, playedDaysAgo, agoLabel, coverImageFor, locLabel,
   complexityLabel, minAgeLabel, FALLBACK_COVER,
 } from '../lib/catalog.js'
 import { seatsPlayers } from '../lib/night.js'
+import { focusOf, focusBlurb } from '../lib/focus.js'
 import GameForm from './GameForm.jsx'
 
 const locGlyph = (l) => (l === 'couch' ? '🛋' : l === 'table' ? '🪑' : '🛋🪑')
@@ -94,7 +95,7 @@ function GameDetail({ g, onClose }) {
             {spec('Complexity', complexityLabel(g.weight))}
             {spec('Min age', minAgeLabel(g.minAge))}
             {spec('Where', locLabel(g.loc))}
-            {spec('Attention', attLabel(g.att))}
+            {spec('Focus', focusBlurb(focusOf(g)))}
             {g.setup && (
               <div className="spec"><div className="k">Setup</div>
                 <div className="v" style={{ textTransform: 'capitalize' }}>{g.setup}</div></div>

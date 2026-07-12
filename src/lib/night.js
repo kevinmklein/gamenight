@@ -2,6 +2,7 @@
 // Session persistence lives in catalog.js; this file is the rules from CLAUDE.md:
 // eligibility gate → smart shortlist → ranked Borda vote → freshness nudge → tiebreak.
 import { playedDaysAgo, FALLBACK_COVER } from './catalog.js'
+import { focusOf, FOCUS_LABELS } from './focus.js'
 
 // Days-since for a ballot snapshot (never-played sorts as "dustiest").
 const dust = (g) => { const d = playedDaysAgo(g); return d == null ? 1e9 : d }
@@ -13,7 +14,7 @@ const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5)
 function snapshot(g) {
   return {
     id: g.id, name: g.name, kind: g.kind, time: g.time || null,
-    players: g.players || '', loc: g.loc || 'either', att: g.att || 'semi',
+    players: g.players || '', loc: g.loc || 'either', focus: focusOf(g),
     cover: g.cover || FALLBACK_COVER, image: g.image || null, bggImage: g.bggImage || null,
     plays: g.plays || 0, last: g.last ?? null, lastPlayed: g.lastPlayed ?? null,
     // BGG extras (present once synced/backfilled) — for the read-only info popup.
@@ -104,12 +105,9 @@ export function eligible(games, c = {}) {
     if (c.maxTime && g.time > c.maxTime) return false
     if (c.loc === 'couch' && g.loc === 'table') return false
     if (c.loc === 'table' && g.loc === 'couch') return false
-    // Attention is ordered background < semi < focus. Half-watch wants only
-    // mindless games; Light focus rules out full-focus ones; All-in rules out
-    // mindless ones — semi is the flexible middle that fits either non-extreme.
-    if (c.att === 'background' && g.att !== 'background') return false
-    if (c.att === 'semi' && g.att === 'focus') return false
-    if (c.att === 'focus' && g.att === 'background') return false
+    // Focus is a ceiling: "how much attention can we give tonight?" rules out
+    // games that demand MORE than that (movie night → only the half-watchable).
+    if (c.focus && focusOf(g) > c.focus) return false
     if (c.players && !seatsPlayers(g, c.players)) return false
     if (c.kind && g.kind !== c.kind) return false
     // "Best at N" — community-poll gate; unknown (no BGG data) doesn't qualify.
@@ -228,7 +226,7 @@ export function constraintPills(c = {}) {
     c.bestAtN && c.players ? `★ Best at ${c.players}` : null,
     c.maxTime ? `⏱ Under ${c.maxTime}m` : '⏱ Any length',
     c.loc === 'couch' ? '🛋 Couch' : c.loc === 'table' ? '🪑 Table' : '🛋🪑 Either',
-    c.att === 'background' ? '👀 Half-watch' : c.att === 'semi' ? '🙂 Light focus' : c.att === 'focus' ? '🧠 All-in' : '🎯 Any focus',
+    c.focus ? `${FOCUS_LABELS[c.focus]} or lighter` : '🎯 Any focus',
     c.kind ? `🎲 ${c.kind}` : null,
     // Soft preferences only show up as a pill when the host actually set them.
     EFFORT_PILL[c.effort], VIBE_PILL[c.vibe], SETUP_PILL[c.setup],
