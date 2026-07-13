@@ -212,11 +212,11 @@ function EditPlay({ games, play, plays, onClose }) {
 
   return (
     <div className="scrim" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
-      <div className="modal" role="dialog" aria-modal="true" aria-label={`Edit ${play.gameName}`}>
+      <div className="modal" role="dialog" aria-modal="true" aria-label={`Edit ${playLabel(play, games)}`}>
         <div className="hero" style={{ background: 'var(--felt)' }}>
           <button className="x" onClick={onClose} aria-label="Cancel">✕</button>
           <div className="kind">Edit this Game Time</div>
-          <h3>{play.gameName}</h3>
+          <h3>{playLabel(play, games)}</h3>
         </div>
         <div className="body">
           <div className="field">
@@ -302,6 +302,13 @@ function playDateLabel(ms) {
   return new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
+// The name to show for a logged play. Prefer the game's CURRENT name (so a later
+// rename or casing fix — e.g. "Uno" → "UNO" — shows through everywhere), falling back
+// to the gameName frozen on the play only when the game is no longer on the shelf.
+function playLabel(play, games) {
+  return games.find((g) => g.id === play.gameId)?.name || play.gameName
+}
+
 // ---- the core-stats dashboard ----
 function Dashboard({ games, plays }) {
   const [editing, setEditing] = useState(null)   // the play currently being edited
@@ -315,7 +322,7 @@ function Dashboard({ games, plays }) {
     const winRows = Object.entries(wins).sort((a, b) => b[1] - a[1])
 
     const counts = {}
-    plays.forEach((p) => { const k = p.gameName; if (k) counts[k] = (counts[k] || 0) + 1 })
+    plays.forEach((p) => { const k = playLabel(p, games); if (k) counts[k] = (counts[k] || 0) + 1 })
     const mostPlayed = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]
 
     const kindCounts = {}
@@ -436,9 +443,9 @@ function Dashboard({ games, plays }) {
           <div className="lb">
             {(showAll ? plays : plays.slice(0, RECENT_PREVIEW)).map((p) => (
               <button className="plrow plrow-btn" key={p.id} onClick={() => setEditing(p)}
-                aria-label={`Edit ${p.gameName} log`}>
+                aria-label={`Edit ${playLabel(p, games)} log`}>
                 <div className="plmain">
-                  <b>{p.gameName}</b>
+                  <b>{playLabel(p, games)}</b>
                   <span className="plmeta">
                     {p.playedAt ? ` · ${playDateLabel(p.playedAt)}` : ''}
                     {p.players?.length ? ` · ${p.players.length} players` : ''}

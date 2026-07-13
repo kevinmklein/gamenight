@@ -366,6 +366,18 @@ Files: `Stats.jsx` (EditPlay modal + clickable rows + Show-all + date label), `c
 `.del-confirm`/`.btn.danger`). Still open (Next-up #3): a per-game "log a play" shortcut from the
 Shelf detail modal.
 
+2026-07-12 play-name resolves live (LIVE, follow-up): Stats now shows a logged play's CURRENT game
+name instead of the name frozen on the play doc at log time. **The discrepancy Kevin caught:** a Jul-4
+play displayed "Uno" while the game record read "UNO" — because `logPlay` freezes `gameName: game.name`
+onto the play, and renaming/standardizing the game later (BGG casing, manual edit) never propagates
+back to existing plays (its `gameId` still linked correctly — only the label was stale). New
+`playLabel(play, games)` helper in `Stats.jsx` resolves `games.find(id)?.name || play.gameName` —
+prefers the live game name, falls back to the frozen snapshot ONLY when the game is no longer on the
+shelf (the snapshot's real purpose: a sensible label for plays of a since-removed game). Applied to the
+Recent Game Times rows (+ aria-label), the "Most played" tally/card, and the EditPlay modal title, so
+renames self-heal everywhere. Verified live: the Jul-4 row now reads "UNO". (Re-saving a play through
+the edit modal also rewrites its snapshot, but this makes that unnecessary going forward.)
+
 Security note: the Firebase web API key is public by design (it ships in the client bundle);
 it was once committed in git history and flagged by GitHub. It's now **restricted in Google
 Cloud** to the site's referrers, so the alert is dismissible. Never paste the key value into
